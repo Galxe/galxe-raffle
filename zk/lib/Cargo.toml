@@ -1,0 +1,13 @@
+[package]
+name = "raffle-lib"
+version = { workspace = true }
+edition = { workspace = true }
+
+[lib]
+name = "raffle_lib"
+path = "src/raffle.rs"
+
+[dependencies]
+alloy-sol-types = { workspace = true }
+sp1-zkvm = { workspace = true }
+sha2-v0-9-8 = { workspace = true }
