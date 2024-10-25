@@ -86,7 +86,7 @@ fn main() {
         // Setup the program for proving.
         let (pk, vk) = client.setup(ELF);
 
-        let proof = client.prove(&pk, stdin).run().unwrap();
+        let proof: SP1ProofWithPublicValues = client.prove(&pk, stdin).run().unwrap();
 
         client.verify(&proof, &vk).expect("verification failed");
 

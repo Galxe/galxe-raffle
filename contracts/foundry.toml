@@ -1,0 +1,13 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+fs_permissions = [{ access = "read-write", path = "./" }]
+
+remappings = [
+    "@openzeppelin/=lib/openzeppelin-contracts/",
+    "@sp1-contracts/=lib/sp1-contracts/contracts/src/",
+]
+
+[etherscan]
+gravity_testnet = { key = "", chain = "13505", url = "https://explorer-sepolia.gravity.xyz/api" }
