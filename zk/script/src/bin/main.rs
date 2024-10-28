@@ -21,8 +21,12 @@ struct Args {
     #[clap(long, default_value = "10")]
     num_winners: u32,
 
-    #[clap(long, default_value = "12345")]
-    random_seed: u64,
+    #[clap(
+        long,
+        default_value = "0x82e8b6bbf24681c9d3c928f988aa6eef88f41f164e5df290e3dca3b8f6ce3f07",
+        value_parser = parse_hex_string
+    )]
+    randomness: [u8; 32],
 }
 
 sol! {
@@ -30,9 +34,23 @@ sol! {
     struct PubValStruct {
         uint32 num_participants;
         uint32 num_winners;
-        uint64 random_seed;
+        bytes32 randomness;
         bytes32 merkle_root;
     }
+}
+
+/// Parse a hex string into a 32-byte array
+fn parse_hex_string(s: &str) -> Result<[u8; 32], String> {
+    let s = s.strip_prefix("0x").unwrap_or(s);
+    if s.len() != 64 {
+        return Err("Randomness must be a 32-byte (64 character) hex string".to_string());
+    }
+
+    let bytes = hex::decode(s).map_err(|e| format!("Failed to decode hex string: {}", e))?;
+
+    bytes
+        .try_into()
+        .map_err(|_| "Failed to convert to 32 byte array".to_string())
 }
 
 fn main() {
@@ -46,14 +64,14 @@ fn main() {
     let mut stdin = SP1Stdin::new();
     stdin.write(&args.num_participants);
     stdin.write(&args.num_winners);
-    stdin.write(&args.random_seed);
+    stdin.write(&args.randomness);
 
     println!("Number of participants: {}", args.num_participants);
     println!("Number of winners: {}", args.num_winners);
-    println!("Random seed: {}", args.random_seed);
+    println!("Random seed: 0x{}", hex::encode(args.randomness));
 
     // Generate and verify the proof
-    let client = ProverClient::new();
+    let client: ProverClient = ProverClient::new();
 
     if args.execute {
         // Execute the program
@@ -65,19 +83,19 @@ fn main() {
         let PubValStruct {
             num_participants,
             num_winners,
-            random_seed,
+            randomness,
             merkle_root,
         } = decoded;
 
-        // Verify that the output matches the input
+        // Verify that the output matches the input (remove random_seed check since it's now transformed)
         assert_eq!(
             num_participants, args.num_participants,
             "Number of participants mismatch"
         );
+        assert_eq!(randomness, args.randomness, "Randomness mismatch");
         assert_eq!(num_winners, args.num_winners, "Number of winners mismatch");
-        assert_eq!(random_seed, args.random_seed, "Random seed mismatch");
-        println!("All input values match the output values.");
 
+        println!("Randomness: 0x{}", hex::encode(randomness));
         println!("Merkle Root: 0x{}", hex::encode(merkle_root));
 
         // Record the number of cycles executed.

@@ -34,8 +34,12 @@ struct EVMArgs {
     #[clap(long, default_value = "10")]
     num_winners: u32,
 
-    #[clap(long, default_value = "12345")]
-    random_seed: u64,
+    #[clap(
+        long,
+        default_value = "0x82e8b6bbf24681c9d3c928f988aa6eef88f41f164e5df290e3dca3b8f6ce3f07",
+        value_parser = parse_hex_string
+    )]
+    randomness: [u8; 32],
 }
 
 /// Enum representing the available proof systems
@@ -51,7 +55,7 @@ enum ProofSystem {
 struct SP1ProofFixture {
     num_participants: u32,
     num_winners: u32,
-    random_seed: u64,
+    randomness: String,
     merkle_root: String,
     vkey: String,
     public_values: String,
@@ -63,9 +67,23 @@ sol! {
     struct PubValStruct {
         uint32 num_participants;
         uint32 num_winners;
-        uint64 random_seed;
+        bytes32 randomness;
         bytes32 merkle_root;
     }
+}
+
+/// Parse a hex string into a 32-byte array
+fn parse_hex_string(s: &str) -> Result<[u8; 32], String> {
+    let s = s.strip_prefix("0x").unwrap_or(s);
+    if s.len() != 64 {
+        return Err("Randomness must be a 32-byte (64 character) hex string".to_string());
+    }
+
+    let bytes = hex::decode(s).map_err(|e| format!("Failed to decode hex string: {}", e))?;
+
+    bytes
+        .try_into()
+        .map_err(|_| "Failed to convert to 32 byte array".to_string())
 }
 
 fn main() {
@@ -85,11 +103,11 @@ fn main() {
     let mut stdin = SP1Stdin::new();
     stdin.write(&args.num_participants);
     stdin.write(&args.num_winners);
-    stdin.write(&args.random_seed);
+    stdin.write(&args.randomness);
 
     println!("Num Participants: {}", args.num_participants);
     println!("Num Winners: {}", args.num_winners);
-    println!("Random Seed: {}", args.random_seed);
+    println!("Randomness: 0x{}", hex::encode(args.randomness));
     println!("Proof System: {:?}", args.system);
 
     // Generate the proof based on the selected proof system.
@@ -113,7 +131,7 @@ fn create_proof_fixture(
     let PubValStruct {
         num_participants,
         num_winners,
-        random_seed,
+        randomness,
         merkle_root,
     } = PubValStruct::abi_decode(bytes, false).unwrap();
 
@@ -121,7 +139,7 @@ fn create_proof_fixture(
     let fixture = SP1ProofFixture {
         num_participants,
         num_winners,
-        random_seed,
+        randomness: format!("0x{}", hex::encode(randomness.as_slice())),
         merkle_root: format!("0x{}", hex::encode(merkle_root.as_slice())),
         vkey: vk.bytes32().to_string(),
         public_values: format!("0x{}", hex::encode(bytes)),
@@ -145,10 +163,19 @@ fn create_proof_fixture(
     println!("Proof Bytes: {}", fixture.proof);
 
     // Save the fixture to a file.
-    let fixture_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../contracts/src/fixtures");
+    let fixture_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../fixtures");
     std::fs::create_dir_all(&fixture_path).expect("failed to create fixture path");
     std::fs::write(
-        fixture_path.join(format!("{:?}-fixture.json", system).to_lowercase()),
+        fixture_path.join(
+            format!(
+                "{:?}-{}-{}-{}-fixture.json",
+                system,
+                num_participants,
+                num_winners,
+                hex::encode(&randomness.as_slice())
+            )
+            .to_lowercase(),
+        ),
         serde_json::to_string_pretty(&fixture).unwrap(),
     )
     .expect("failed to write fixture");

@@ -5,17 +5,20 @@ sp1_zkvm::entrypoint!(main);
 
 use alloy_sol_types::sol;
 use alloy_sol_types::SolType;
-use raffle_lib::raffle_naive;
+use raffle_lib::raffle;
 use sha2_v0_9_8::{Digest as Digest_9_8, Sha256 as Sha256_9_8};
 
 pub fn main() {
     // Read the raffle event data
     let num_participants = sp1_zkvm::io::read::<u32>();
-    let num_winners = sp1_zkvm::io::read::<u32>();
-    let random_seed = sp1_zkvm::io::read::<u64>();
+    let num_winners: u32 = sp1_zkvm::io::read::<u32>();
+
+    // The drand network provides randomness outputs as a byte array with 32 bytes of data
+    let randomness = sp1_zkvm::io::read::<[u8; 32]>();
+    let randomness_as_u64 = u64::from_le_bytes(randomness[..8].try_into().unwrap());
 
     // Run the raffle and get winners
-    let winners = raffle_naive(num_participants, num_winners, random_seed);
+    let winners = raffle(num_participants, num_winners, randomness_as_u64);
 
     // Calculate Merkle root for winners
     let merkle_root = calculate_merkle_root(&winners);
@@ -23,7 +26,7 @@ pub fn main() {
     let pub_val = PubValStruct {
         num_participants,
         num_winners,
-        random_seed,
+        randomness: alloy_sol_types::private::FixedBytes(randomness),
         merkle_root: alloy_sol_types::private::FixedBytes(merkle_root),
     };
 
@@ -38,7 +41,7 @@ sol! {
     struct PubValStruct {
         uint32 num_participants;
         uint32 num_winners;
-        uint64 random_seed;
+        bytes32 randomness;
         bytes32 merkle_root;
     }
 }
