@@ -39,15 +39,18 @@ contract Raffle is Ownable2Step, Pausable, EIP712 {
     error QuestNotActive();
     error QuestStillActive();
     error QuestRandomnessAlreadyCommitted();
+    error QuestAlreadyRevealed();
+    error IncorrectProof();
 
     event Participate(uint64 questID, uint256 user, uint64 verifyID);
-    event Reveal(uint64 questID, uint32 participantCount, uint32 winnerCount, uint64 randomSeed, bytes32 merkleRoot);
+    event CommitRandomness(uint64 questID, uint64 roundID, bytes32 randomness);
+    event Reveal(uint64 questID, uint32 participantCount, uint32 winnerCount, bytes32 randomness, bytes32 merkleRoot);
 
     struct RaffleQuest {
         uint64 questID;
         uint64 roundID;
         bool active;
-        bytes randomness;
+        bytes32 randomness;
         mapping(uint256 => uint256) participantIds;
         uint256 participantCount;
         uint256 winnerCount;
@@ -157,7 +160,7 @@ contract Raffle is Ownable2Step, Pausable, EIP712 {
     /// @param _roundID The round ID.
     /// @param _randomness The randomness.
     /// @param _signature The signature.
-    function commitRandomness(uint64 _questID, uint64 _roundID, bytes calldata _randomness, bytes calldata _signature)
+    function commitRandomness(uint64 _questID, uint64 _roundID, bytes32 _randomness, bytes calldata _signature)
         public
     {
         RaffleQuest storage quest = quests[_questID];
@@ -170,7 +173,7 @@ contract Raffle is Ownable2Step, Pausable, EIP712 {
             revert QuestNotActive();
         }
 
-        if (quest.roundID != 0) {
+        if (quest.randomness != bytes32(0)) {
             revert QuestRandomnessAlreadyCommitted();
         }
 
@@ -186,6 +189,8 @@ contract Raffle is Ownable2Step, Pausable, EIP712 {
         quest.randomness = _randomness;
         quest.roundID = _roundID;
         quest.active = false;
+
+        emit CommitRandomness(_questID, _roundID, _randomness);
     }
 
     /// @notice Verifies the proof and reveals the raffle result.
@@ -203,20 +208,28 @@ contract Raffle is Ownable2Step, Pausable, EIP712 {
             revert QuestStillActive();
         }
 
-        ISP1Verifier(verifier).verifyProof(vkey, _publicValues, _proofBytes);
+        if (quest.merkleRoot != bytes32(0)) {
+            revert QuestAlreadyRevealed();
+        }
 
-        (uint32 participantCount, uint32 winnerCount, uint64 randomSeed, bytes32 merkleRoot) =
-            abi.decode(_publicValues, (uint32, uint32, uint64, bytes32));
+        (uint32 participantCount, uint32 winnerCount, bytes32 randomness, bytes32 merkleRoot) =
+            abi.decode(_publicValues, (uint32, uint32, bytes32, bytes32));
+
+        if (participantCount != quest.participantCount || randomness != quest.randomness) {
+            revert IncorrectProof();
+        }
+
+        ISP1Verifier(verifier).verifyProof(vkey, _publicValues, _proofBytes);
 
         quest.merkleRoot = merkleRoot;
 
-        emit Reveal(_questID, participantCount, winnerCount, randomSeed, merkleRoot);
+        emit Reveal(_questID, participantCount, winnerCount, randomness, merkleRoot);
     }
 
     function getQuest(uint256 _questID)
         public
         view
-        returns (uint64 _roundID, bytes memory _randomness, bool _active, bytes32 _merkleRoot)
+        returns (uint64 _roundID, bytes32 _randomness, bool _active, bytes32 _merkleRoot)
     {
         RaffleQuest storage quest = quests[_questID];
         _roundID = quest.roundID;
@@ -243,7 +256,7 @@ contract Raffle is Ownable2Step, Pausable, EIP712 {
         );
     }
 
-    function _hashCommitRandomness(uint64 _questID, uint64 _roundID, bytes calldata _randomness)
+    function _hashCommitRandomness(uint64 _questID, uint64 _roundID, bytes32 _randomness)
         private
         view
         returns (bytes32)
@@ -251,10 +264,10 @@ contract Raffle is Ownable2Step, Pausable, EIP712 {
         return _hashTypedDataV4(
             keccak256(
                 abi.encode(
-                    keccak256("CommitRandomness(uint64 questID,uint64 roundID,bytes randomness)"),
+                    keccak256("CommitRandomness(uint64 questID,uint64 roundID,bytes32 randomness)"),
                     _questID,
                     _roundID,
-                    keccak256(_randomness)
+                    _randomness
                 )
             )
         );

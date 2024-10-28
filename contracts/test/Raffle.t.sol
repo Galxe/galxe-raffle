@@ -15,7 +15,7 @@ struct SP1ProofFixtureJson {
     uint32 numWinners;
     bytes proof;
     bytes publicValues;
-    uint64 randomSeed;
+    bytes32 randomness;
     bytes32 vkey;
 }
 
@@ -41,7 +41,10 @@ contract RaffleTest is Test {
 
     function loadFixture() public view returns (SP1ProofFixtureJson memory) {
         string memory root = vm.projectRoot();
-        string memory path = string.concat(root, "/test/fixtures/groth16-fixture.json");
+        string memory path = string.concat(
+            root,
+            "/test/fixtures/groth16-1000-10-82e8b6bbf24681c9d3c928f988aa6eef88f41f164e5df290e3dca3b8f6ce3f07-fixture.json"
+        );
         string memory json = vm.readFile(path);
         bytes memory jsonBytes = json.parseRaw(".");
         return abi.decode(jsonBytes, (SP1ProofFixtureJson));
@@ -84,21 +87,123 @@ contract RaffleTest is Test {
 
         // commit randomness
         uint64 drandRoundID = 1;
-        (uint8 rv, bytes32 rr, bytes32 rs) = vm.sign(
-            signerPrivateKey, _hashCommitRandomness(questID, drandRoundID, abi.encodePacked(fixture.randomSeed))
-        );
+        (uint8 rv, bytes32 rr, bytes32 rs) =
+            vm.sign(signerPrivateKey, _hashCommitRandomness(questID, drandRoundID, fixture.randomness));
         bytes memory randomnessSignature = abi.encodePacked(rr, rs, rv);
-        raffle.commitRandomness(questID, drandRoundID, abi.encodePacked(fixture.randomSeed), randomnessSignature);
+        raffle.commitRandomness(questID, drandRoundID, fixture.randomness, randomnessSignature);
 
         // reveal
         raffle.reveal(questID, fixture.publicValues, fixture.proof);
 
         // verify quest state
-        (uint64 roundID, bytes memory randomness, bool active, bytes32 merkleRoot) = raffle.getQuest(questID);
+        (uint64 roundID, bytes32 randomness, bool active, bytes32 merkleRoot) = raffle.getQuest(questID);
         assertEq(roundID, drandRoundID);
-        assertEq(randomness, abi.encodePacked(fixture.randomSeed));
+        assertEq(randomness, fixture.randomness);
         assertEq(active, false);
         assertEq(merkleRoot, fixture.merkleRoot);
+    }
+
+    /// @notice Tests that the commit randomness fails if a randomness commit has already been made - quest is already not active
+    function test_commit_randomness_failure_multiple_commit() public {
+        SP1ProofFixtureJson memory fixture = loadFixture();
+        vm.mockCall(verifier, abi.encodeWithSelector(SP1VerifierGateway.verifyProof.selector), abi.encode(true));
+
+        // generate participants
+        for (uint256 i = 0; i < fixture.numParticipants; i++) {
+            // generate new participant address
+            uint256 newParticipant = uint256(i) + 1; // private key cannot be 0
+            // generate verify id
+            uint64 verifyID = uint64(i) + 1;
+            // generate signature
+            (uint8 v, bytes32 r, bytes32 s) =
+                vm.sign(signerPrivateKey, _hashParticipate(questID, newParticipant, verifyID));
+            bytes memory signature = abi.encodePacked(r, s, v);
+            // participate
+            raffle.participate(questID, newParticipant, verifyID, signature);
+        }
+
+        // commit randomness - ok
+        uint64 drandRoundID = 1;
+        (uint8 rv, bytes32 rr, bytes32 rs) =
+            vm.sign(signerPrivateKey, _hashCommitRandomness(questID, drandRoundID, fixture.randomness));
+        bytes memory randomnessSignature = abi.encodePacked(rr, rs, rv);
+        raffle.commitRandomness(questID, drandRoundID, fixture.randomness, randomnessSignature);
+
+        // commit randomness - fail
+        vm.expectRevert(abi.encodeWithSelector(Raffle.QuestNotActive.selector));
+        raffle.commitRandomness(questID, drandRoundID, fixture.randomness, randomnessSignature);
+    }
+
+    function test_reveal_failure_already_revealed() public {
+        SP1ProofFixtureJson memory fixture = loadFixture();
+        vm.mockCall(verifier, abi.encodeWithSelector(SP1VerifierGateway.verifyProof.selector), abi.encode(true));
+
+        // generate participants
+        for (uint256 i = 0; i < fixture.numParticipants; i++) {
+            // generate new participant address
+            uint256 newParticipant = uint256(i) + 1; // private key cannot be 0
+            // generate verify id
+            uint64 verifyID = uint64(i) + 1;
+            // generate signature
+            (uint8 v, bytes32 r, bytes32 s) =
+                vm.sign(signerPrivateKey, _hashParticipate(questID, newParticipant, verifyID));
+            bytes memory signature = abi.encodePacked(r, s, v);
+            // participate
+            raffle.participate(questID, newParticipant, verifyID, signature);
+        }
+
+        // commit randomness
+        uint64 drandRoundID = 1;
+        (uint8 rv, bytes32 rr, bytes32 rs) =
+            vm.sign(signerPrivateKey, _hashCommitRandomness(questID, drandRoundID, fixture.randomness));
+        bytes memory randomnessSignature = abi.encodePacked(rr, rs, rv);
+        raffle.commitRandomness(questID, drandRoundID, fixture.randomness, randomnessSignature);
+
+        // reveal
+        raffle.reveal(questID, fixture.publicValues, fixture.proof);
+
+        // reveal again
+        vm.expectRevert(abi.encodeWithSelector(Raffle.QuestAlreadyRevealed.selector));
+        raffle.reveal(questID, fixture.publicValues, fixture.proof);
+    }
+
+    /// @notice Tests that the reveal fails if the zk proof is incorrect - i.e. proof is valid but public values are incorrect
+    function test_reveal_failure_incorrect_zk_proof() public {
+        SP1ProofFixtureJson memory fixture = loadFixture();
+        vm.mockCall(verifier, abi.encodeWithSelector(SP1VerifierGateway.verifyProof.selector), abi.encode(true));
+
+        // generate participants
+        for (uint256 i = 0; i < fixture.numParticipants; i++) {
+            // generate new participant address
+            uint256 newParticipant = uint256(i) + 1; // private key cannot be 0
+            // generate verify id
+            uint64 verifyID = uint64(i) + 1;
+            // generate signature
+            (uint8 v, bytes32 r, bytes32 s) =
+                vm.sign(signerPrivateKey, _hashParticipate(questID, newParticipant, verifyID));
+            bytes memory signature = abi.encodePacked(r, s, v);
+            // participate
+            raffle.participate(questID, newParticipant, verifyID, signature);
+        }
+
+        // commit randomness
+        uint64 drandRoundID = 1;
+        (uint8 rv, bytes32 rr, bytes32 rs) =
+            vm.sign(signerPrivateKey, _hashCommitRandomness(questID, drandRoundID, fixture.randomness));
+        bytes memory randomnessSignature = abi.encodePacked(rr, rs, rv);
+        raffle.commitRandomness(questID, drandRoundID, fixture.randomness, randomnessSignature);
+
+        // reveal
+        // modify the public values to be incorrect
+        (uint32 participantCount, uint32 winnerCount, bytes32 randomness, bytes32 merkleRoot) =
+            abi.decode(fixture.publicValues, (uint32, uint32, bytes32, bytes32));
+        bytes memory incorrectPublicValues = abi.encode(participantCount + 1, winnerCount, randomness, merkleRoot);
+
+        vm.expectRevert(abi.encodeWithSelector(Raffle.IncorrectProof.selector));
+        raffle.reveal(questID, incorrectPublicValues, fixture.proof);
+
+        // retry reveal with correct public values
+        raffle.reveal(questID, fixture.publicValues, fixture.proof);
     }
 
     // --------------- hash functions ------------- //
@@ -112,7 +217,7 @@ contract RaffleTest is Test {
         );
     }
 
-    function _hashCommitRandomness(uint64 _questID, uint64 _roundID, bytes memory _randomness)
+    function _hashCommitRandomness(uint64 _questID, uint64 _roundID, bytes32 _randomness)
         private
         view
         returns (bytes32)
@@ -120,10 +225,10 @@ contract RaffleTest is Test {
         return _hashTypedDataV4(
             keccak256(
                 abi.encode(
-                    keccak256("CommitRandomness(uint64 questID,uint64 roundID,bytes randomness)"),
+                    keccak256("CommitRandomness(uint64 questID,uint64 roundID,bytes32 randomness)"),
                     _questID,
                     _roundID,
-                    keccak256(_randomness)
+                    _randomness
                 )
             )
         );
