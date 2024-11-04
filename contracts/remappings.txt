@@ -1,6 +1,8 @@
 @openzeppelin/=lib/openzeppelin-contracts/
 @sp1-contracts/=lib/sp1-contracts/contracts/src/
+@drand-oracle/=lib/drand-oracle/contracts/src/
 @openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
+drand-oracle/=lib/drand-oracle/
 forge-std/=lib/forge-std/src/
 openzeppelin-contracts/=lib/openzeppelin-contracts/
 sp1-contracts/=lib/sp1-contracts/

@@ -24,7 +24,7 @@ import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {BitMaps} from "@openzeppelin/contracts/utils/structs/BitMaps.sol";
 import {ISP1Verifier} from "@sp1-contracts/ISP1Verifier.sol";
-import {IRaffle} from "../interface/IRaffle.sol";
+import {IDrandOracle, IRaffle} from "./IRaffle.sol";
 
 /// @title Galxe Raffle Contract
 /// @author Galxe Team
@@ -34,7 +34,7 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
     struct RaffleQuest {
         uint64 questID;
         bool active;
-        DrandBeacon beacon;
+        IDrandOracle.Random random;
         mapping(uint256 => uint256) participantIds;
         uint256 participantCount;
         uint256 winnerCount;
@@ -53,6 +53,9 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
     /// @dev The address of the SP1 verifier contract.
     address public override verifier;
 
+    /// @dev The address of the DrandOracle contract.
+    address public override drandOracle;
+
     /// @notice The verification key for the SP1 RISC-V program.
     bytes32 public override vkey;
 
@@ -61,7 +64,7 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
     /// @param _signer The signer address.
     /// @param _verifier The SP1 verifier address.
     /// @param _vkey The verification key for the SP1 RISC-V program.
-    constructor(address _initialOwner, address _signer, address _verifier, bytes32 _vkey)
+    constructor(address _initialOwner, address _signer, address _verifier, bytes32 _vkey, address _drandOracle)
         Ownable(_initialOwner)
         EIP712("Galxe Raffle", "1.0.0")
     {
@@ -77,6 +80,7 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
         signer = _signer;
         verifier = _verifier;
         vkey = _vkey;
+        drandOracle = _drandOracle;
     }
 
     /// @notice Pauses the contract.
@@ -96,6 +100,31 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
             revert IRaffle.InvalidAddress();
         }
         signer = _signer;
+        emit IRaffle.SignerUpdated(_signer);
+    }
+
+    /// @notice Sets the verifier address.
+    /// @param _verifier The new verifier address.
+    function setVerifier(address _verifier) public onlyOwner {
+        if (_verifier == address(0)) {
+            revert IRaffle.InvalidAddress();
+        }
+        verifier = _verifier;
+        emit IRaffle.VerifierUpdated(_verifier);
+    }
+
+    /// @notice Sets the verification key.
+    /// @param _vkey The new verification key.
+    function setVkey(bytes32 _vkey) public onlyOwner {
+        vkey = _vkey;
+        emit IRaffle.VkeyUpdated(_vkey);
+    }
+
+    /// @notice Sets the DrandOracle address.
+    /// @param _drandOracle The new DrandOracle address.
+    function setDrandOracle(address _drandOracle) public onlyOwner {
+        drandOracle = _drandOracle;
+        emit IRaffle.DrandOracleUpdated(_drandOracle);
     }
 
     /// @notice Participates in the raffle reward quest.
@@ -109,6 +138,10 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
     {
         if (_questID == 0) {
             revert IRaffle.InvalidQuestID();
+        }
+
+        if (_user == 0) {
+            revert IRaffle.InvalidAddress();
         }
 
         if (hasParticipated(_verifyID)) {
@@ -141,9 +174,8 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
 
     /// @notice Commits the randomness for the quest.
     /// @param _questID The quest ID.
-    /// @param _beacon The drand beacon.
     /// @param _signature The signature.
-    function commitRandomness(uint64 _questID, DrandBeacon calldata _beacon, bytes calldata _signature) public {
+    function commitRandomness(uint64 _questID, uint64 _timestamp, bytes calldata _signature) public {
         RaffleQuest storage quest = quests[_questID];
 
         if (quest.questID == 0) {
@@ -154,26 +186,25 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
             revert IRaffle.QuestNotActive();
         }
 
-        if (quest.beacon.randomness != bytes32(0)) {
+        if (quest.random.randomness != bytes32(0)) {
             revert IRaffle.QuestRandomnessAlreadyCommitted();
         }
 
-        if (
-            _beacon.round == 0 || _beacon.randomness == bytes32(0) || _beacon.signature.length == 0
-                || _beacon.previousSignature.length == 0
-        ) {
-            revert IRaffle.InvalidBeacon();
-        }
-
-        bool isVerified = _verify(_hashCommitRandomness(_questID, _beacon), _signature);
+        bool isVerified = _verify(_hashCommitRandomness(_questID, _timestamp), _signature);
         if (!isVerified) {
             revert IRaffle.InvalidSignature();
         }
 
-        quest.beacon = _beacon;
+        IDrandOracle.Random memory random = IDrandOracle(drandOracle).getRandomnessFromTimestamp(_timestamp);
+
+        if (random.round == 0 || random.randomness == bytes32(0) || random.signature.length == 0) {
+            revert IRaffle.InvalidRandomness();
+        }
+
+        quest.random = random;
         quest.active = false;
 
-        emit IRaffle.CommitRandomness(_questID, _beacon.round, _beacon.randomness);
+        emit IRaffle.CommitRandomness(_questID, random.round, random.randomness);
     }
 
     /// @notice Verifies the proof and reveals the raffle result.
@@ -198,7 +229,7 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
         (uint32 participantCount, uint32 winnerCount, bytes32 randomness, bytes32 merkleRoot) =
             abi.decode(_publicValues, (uint32, uint32, bytes32, bytes32));
 
-        if (participantCount != quest.participantCount || randomness != quest.beacon.randomness) {
+        if (participantCount != quest.participantCount || randomness != quest.random.randomness) {
             revert IRaffle.IncorrectProof();
         }
 
@@ -210,13 +241,13 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
     }
 
     function getQuest(uint256 _questID)
-        public
+        external
         view
-        returns (bool _active, DrandBeacon memory _beacon, bytes32 _merkleRoot)
+        returns (bool _active, IDrandOracle.Random memory random, bytes32 _merkleRoot)
     {
         RaffleQuest storage quest = quests[_questID];
         _active = quest.active;
-        _beacon = quest.beacon;
+        random = quest.random;
         _merkleRoot = quest.merkleRoot;
     }
 
@@ -238,20 +269,9 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
         );
     }
 
-    function _hashCommitRandomness(uint64 _questID, DrandBeacon calldata _beacon) private view returns (bytes32) {
+    function _hashCommitRandomness(uint64 _questID, uint64 _timestamp) private view returns (bytes32) {
         return _hashTypedDataV4(
-            keccak256(
-                abi.encode(
-                    keccak256(
-                        "CommitRandomness(uint64 questID,uint64 round,bytes32 randomness,bytes signature,bytes previousSignature)"
-                    ),
-                    _questID,
-                    _beacon.round,
-                    _beacon.randomness,
-                    keccak256(_beacon.signature),
-                    keccak256(_beacon.previousSignature)
-                )
-            )
+            keccak256(abi.encode(keccak256("CommitRandomness(uint64 questID,uint64 timestamp)"), _questID, _timestamp))
         );
     }
 
