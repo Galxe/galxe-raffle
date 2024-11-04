@@ -10,5 +10,12 @@ remappings = [
     "@drand-oracle/=lib/drand-oracle/contracts/src/",
 ]
 
+[rpc_endpoints]
+gravity = "${RPC_GRAVITY}"
+gravity_sepolia = "${RPC_GRAVITY_SEPOLIA}"
+anvil = "http://127.0.0.1:8545"
+
 [etherscan]
-gravity_testnet = { key = "", chain = "13505", url = "https://explorer-sepolia.gravity.xyz/api" }
+gravity = { key = "", chain = "1625", url = "${ETHERSCAN_API_URL_GRAVITY}", verifier = "blockscout" }
+gravity_sepolia = { key = "", chain = "13505", url = "${ETHERSCAN_API_URL_GRAVITY_SEPOLIA}", verifier = "blockscout" }
+anvil = { key = "", chain = "31337", url = "http://127.0.0.1:8545" }
