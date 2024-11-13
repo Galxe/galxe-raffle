@@ -5,7 +5,7 @@ edition = { workspace = true }
 publish = false
 
 [dependencies]
-alloy-sol-types = "0.8.3"
+alloy-sol-types = { workspace = true }
 sp1-zkvm = { workspace = true }
 sha2-v0-9-8 = { workspace = true }
 raffle-lib = { path = "../lib" }

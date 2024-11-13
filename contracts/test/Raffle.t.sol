@@ -46,7 +46,7 @@ contract RaffleTest is Test {
         string memory root = vm.projectRoot();
         string memory path = string.concat(
             root,
-            "/test/fixtures/groth16-1000-10-82e8b6bbf24681c9d3c928f988aa6eef88f41f164e5df290e3dca3b8f6ce3f07-fixture.json"
+            "../../zk/fixtures/groth16-1000-10-82e8b6bbf24681c9d3c928f988aa6eef88f41f164e5df290e3dca3b8f6ce3f07-fixture.json"
         );
         string memory json = vm.readFile(path);
         bytes memory jsonBytes = json.parseRaw(".");
