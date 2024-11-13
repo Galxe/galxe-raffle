@@ -274,17 +274,4 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
             keccak256(abi.encode(keccak256("CommitRandomness(uint64 questID,uint64 timestamp)"), _questID, _timestamp))
         );
     }
-
-    function _hashReveal(uint64 _questID, uint64 _roundID, bytes calldata _randomness) private view returns (bytes32) {
-        return _hashTypedDataV4(
-            keccak256(
-                abi.encode(
-                    keccak256("Reveal(uint64 questID,uint64 roundID,bytes randomness)"),
-                    _questID,
-                    _roundID,
-                    keccak256(_randomness)
-                )
-            )
-        );
-    }
 }
