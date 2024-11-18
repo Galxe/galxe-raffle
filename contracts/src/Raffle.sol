@@ -236,6 +236,7 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
         ISP1Verifier(verifier).verifyProof(vkey, _publicValues, _proofBytes);
 
         quest.merkleRoot = merkleRoot;
+        quest.winnerCount = winnerCount;
 
         emit IRaffle.Reveal(_questID, participantCount, winnerCount, randomness, merkleRoot);
     }
@@ -243,12 +244,16 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
     function getQuest(uint256 _questID)
         external
         view
-        returns (bool _active, IDrandOracle.Random memory random, bytes32 _merkleRoot)
+        returns (
+            bool _active,
+            IDrandOracle.Random memory random,
+            uint256 _participantCount,
+            uint256 _winnerCount,
+            bytes32 _merkleRoot
+        )
     {
         RaffleQuest storage quest = quests[_questID];
-        _active = quest.active;
-        random = quest.random;
-        _merkleRoot = quest.merkleRoot;
+        return (quest.active, quest.random, quest.participantCount, quest.winnerCount, quest.merkleRoot);
     }
 
     function hasParticipated(uint256 _verifyID) public view returns (bool) {

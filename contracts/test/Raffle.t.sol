@@ -114,9 +114,17 @@ contract RaffleTest is Test {
         raffle.reveal(questID, fixture.publicValues, fixture.proof);
 
         // verify quest state
-        (bool active, IDrandOracle.Random memory random, bytes32 merkleRoot) = raffle.getQuest(questID);
+        (
+            bool active,
+            IDrandOracle.Random memory random,
+            uint256 participantCount,
+            uint256 winnerCount,
+            bytes32 merkleRoot
+        ) = raffle.getQuest(questID);
         assertEq(random.round, 1);
         assertEq(random.randomness, fixture.randomness);
+        assertEq(participantCount, fixture.numParticipants);
+        assertEq(winnerCount, fixture.numWinners);
         assertEq(active, false);
         assertEq(merkleRoot, fixture.merkleRoot);
     }

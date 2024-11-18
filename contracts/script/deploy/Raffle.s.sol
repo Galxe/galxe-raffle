@@ -6,6 +6,8 @@ import {BaseScript} from "../utils/Base.s.sol";
 import {Raffle} from "../../src/Raffle.sol";
 
 contract RaffleScript is BaseScript {
+    string internal constant KEY = "RAFFLE";
+
     function run() external chain broadcaster {
         bytes32 CREATE2_SALT = vm.envBytes32("CREATE2_SALT");
         address owner = vm.envAddress("OWNER");
@@ -23,5 +25,8 @@ contract RaffleScript is BaseScript {
 
         Raffle raffle = new Raffle{salt: CREATE2_SALT}(owner, signer, verifier, vkey, drandOracle);
         console.log("Raffle deployed at:", address(raffle));
+
+        // Write address
+        writeAddress(KEY, address(raffle));
     }
 }

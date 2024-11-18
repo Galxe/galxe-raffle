@@ -59,7 +59,13 @@ interface IRaffle {
     function getQuest(uint256 _questID)
         external
         view
-        returns (bool _active, IDrandOracle.Random memory random, bytes32 _merkleRoot);
+        returns (
+            bool _active,
+            IDrandOracle.Random memory random,
+            uint256 _participantCount,
+            uint256 _winnerCount,
+            bytes32 _merkleRoot
+        );
 
     function hasParticipated(uint256 _verifyID) external view returns (bool);
 

@@ -6,4 +6,4 @@
 
 ## 📄 Example Deployment
 
-- Gravity Alpha Testnet Sepolia: [0xc0e9eb9299bd2349ca0bb711b4ba4a1d43b1524f](https://explorer-sepolia.gravity.xyz/address/0xc0e9eb9299bd2349ca0bb711b4ba4a1d43b1524f)
+- Gravity Alpha Testnet Sepolia: [0x4349F1d73237c8Eb43FC04A16CFf70261D0F1343](https://explorer-sepolia.gravity.xyz/address/0x4349F1d73237c8Eb43FC04A16CFf70261D0F1343)

@@ -39,7 +39,7 @@ type IDrandOracleRandom struct {
 
 // RaffleMetaData contains all meta data concerning the Raffle contract.
 var RaffleMetaData = &bind.MetaData{
-	ABI: "[{\"type\":\"function\",\"name\":\"commitRandomness\",\"inputs\":[{\"name\":\"_questID\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"_timestamp\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"_signature\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"drandOracle\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getQuest\",\"inputs\":[{\"name\":\"_questID\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"_active\",\"type\":\"bool\",\"internalType\":\"bool\"},{\"name\":\"random\",\"type\":\"tuple\",\"internalType\":\"structIDrandOracle.Random\",\"components\":[{\"name\":\"round\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"timestamp\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"randomness\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"signature\",\"type\":\"bytes\",\"internalType\":\"bytes\"}]},{\"name\":\"_merkleRoot\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"hasParticipated\",\"inputs\":[{\"name\":\"_verifyID\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"participate\",\"inputs\":[{\"name\":\"_questID\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"_user\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_verifyID\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"_signature\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"pause\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"reveal\",\"inputs\":[{\"name\":\"_questID\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"_publicValues\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"_proofBytes\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setSigner\",\"inputs\":[{\"name\":\"_signer\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"signer\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"unpause\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"verifier\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"vkey\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"event\",\"name\":\"CommitRandomness\",\"inputs\":[{\"name\":\"questID\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"roundID\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"randomness\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"DrandOracleUpdated\",\"inputs\":[{\"name\":\"drandOracle\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Participate\",\"inputs\":[{\"name\":\"questID\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"user\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"verifyID\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Reveal\",\"inputs\":[{\"name\":\"questID\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"participantCount\",\"type\":\"uint32\",\"indexed\":false,\"internalType\":\"uint32\"},{\"name\":\"winnerCount\",\"type\":\"uint32\",\"indexed\":false,\"internalType\":\"uint32\"},{\"name\":\"randomness\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"},{\"name\":\"merkleRoot\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"SignerUpdated\",\"inputs\":[{\"name\":\"signer\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"VerifierUpdated\",\"inputs\":[{\"name\":\"verifier\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"VkeyUpdated\",\"inputs\":[{\"name\":\"vkey\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"IncorrectProof\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidAddress\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidQuestID\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidRandomness\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidSignature\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"QuestAlreadyRevealed\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"QuestNotActive\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"QuestNotExists\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"QuestRandomnessAlreadyCommitted\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"QuestStillActive\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"VerifyIdAlreadyUsed\",\"inputs\":[{\"name\":\"verifyId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]}]",
+	ABI: "[{\"type\":\"function\",\"name\":\"commitRandomness\",\"inputs\":[{\"name\":\"_questID\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"_timestamp\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"_signature\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"drandOracle\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getQuest\",\"inputs\":[{\"name\":\"_questID\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"_active\",\"type\":\"bool\",\"internalType\":\"bool\"},{\"name\":\"random\",\"type\":\"tuple\",\"internalType\":\"structIDrandOracle.Random\",\"components\":[{\"name\":\"round\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"timestamp\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"randomness\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"signature\",\"type\":\"bytes\",\"internalType\":\"bytes\"}]},{\"name\":\"_participantCount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_winnerCount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_merkleRoot\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"hasParticipated\",\"inputs\":[{\"name\":\"_verifyID\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"participate\",\"inputs\":[{\"name\":\"_questID\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"_user\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_verifyID\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"_signature\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"pause\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"reveal\",\"inputs\":[{\"name\":\"_questID\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"_publicValues\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"_proofBytes\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setSigner\",\"inputs\":[{\"name\":\"_signer\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"signer\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"unpause\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"verifier\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"vkey\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"event\",\"name\":\"CommitRandomness\",\"inputs\":[{\"name\":\"questID\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"roundID\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"randomness\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"DrandOracleUpdated\",\"inputs\":[{\"name\":\"drandOracle\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Participate\",\"inputs\":[{\"name\":\"questID\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"user\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"verifyID\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Reveal\",\"inputs\":[{\"name\":\"questID\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"participantCount\",\"type\":\"uint32\",\"indexed\":false,\"internalType\":\"uint32\"},{\"name\":\"winnerCount\",\"type\":\"uint32\",\"indexed\":false,\"internalType\":\"uint32\"},{\"name\":\"randomness\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"},{\"name\":\"merkleRoot\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"SignerUpdated\",\"inputs\":[{\"name\":\"signer\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"VerifierUpdated\",\"inputs\":[{\"name\":\"verifier\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"VkeyUpdated\",\"inputs\":[{\"name\":\"vkey\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"IncorrectProof\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidAddress\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidQuestID\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidRandomness\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidSignature\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"QuestAlreadyRevealed\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"QuestNotActive\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"QuestNotExists\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"QuestRandomnessAlreadyCommitted\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"QuestStillActive\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"VerifyIdAlreadyUsed\",\"inputs\":[{\"name\":\"verifyId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]}]",
 }
 
 // RaffleABI is the input ABI used to generate the binding from.
@@ -221,19 +221,23 @@ func (_Raffle *RaffleCallerSession) DrandOracle() (common.Address, error) {
 
 // GetQuest is a free data retrieval call binding the contract method 0x49f86f34.
 //
-// Solidity: function getQuest(uint256 _questID) view returns(bool _active, (uint64,uint64,bytes32,bytes) random, bytes32 _merkleRoot)
+// Solidity: function getQuest(uint256 _questID) view returns(bool _active, (uint64,uint64,bytes32,bytes) random, uint256 _participantCount, uint256 _winnerCount, bytes32 _merkleRoot)
 func (_Raffle *RaffleCaller) GetQuest(opts *bind.CallOpts, _questID *big.Int) (struct {
-	Active     bool
-	Random     IDrandOracleRandom
-	MerkleRoot [32]byte
+	Active           bool
+	Random           IDrandOracleRandom
+	ParticipantCount *big.Int
+	WinnerCount      *big.Int
+	MerkleRoot       [32]byte
 }, error) {
 	var out []interface{}
 	err := _Raffle.contract.Call(opts, &out, "getQuest", _questID)
 
 	outstruct := new(struct {
-		Active     bool
-		Random     IDrandOracleRandom
-		MerkleRoot [32]byte
+		Active           bool
+		Random           IDrandOracleRandom
+		ParticipantCount *big.Int
+		WinnerCount      *big.Int
+		MerkleRoot       [32]byte
 	})
 	if err != nil {
 		return *outstruct, err
@@ -241,7 +245,9 @@ func (_Raffle *RaffleCaller) GetQuest(opts *bind.CallOpts, _questID *big.Int) (s
 
 	outstruct.Active = *abi.ConvertType(out[0], new(bool)).(*bool)
 	outstruct.Random = *abi.ConvertType(out[1], new(IDrandOracleRandom)).(*IDrandOracleRandom)
-	outstruct.MerkleRoot = *abi.ConvertType(out[2], new([32]byte)).(*[32]byte)
+	outstruct.ParticipantCount = *abi.ConvertType(out[2], new(*big.Int)).(**big.Int)
+	outstruct.WinnerCount = *abi.ConvertType(out[3], new(*big.Int)).(**big.Int)
+	outstruct.MerkleRoot = *abi.ConvertType(out[4], new([32]byte)).(*[32]byte)
 
 	return *outstruct, err
 
@@ -249,22 +255,26 @@ func (_Raffle *RaffleCaller) GetQuest(opts *bind.CallOpts, _questID *big.Int) (s
 
 // GetQuest is a free data retrieval call binding the contract method 0x49f86f34.
 //
-// Solidity: function getQuest(uint256 _questID) view returns(bool _active, (uint64,uint64,bytes32,bytes) random, bytes32 _merkleRoot)
+// Solidity: function getQuest(uint256 _questID) view returns(bool _active, (uint64,uint64,bytes32,bytes) random, uint256 _participantCount, uint256 _winnerCount, bytes32 _merkleRoot)
 func (_Raffle *RaffleSession) GetQuest(_questID *big.Int) (struct {
-	Active     bool
-	Random     IDrandOracleRandom
-	MerkleRoot [32]byte
+	Active           bool
+	Random           IDrandOracleRandom
+	ParticipantCount *big.Int
+	WinnerCount      *big.Int
+	MerkleRoot       [32]byte
 }, error) {
 	return _Raffle.Contract.GetQuest(&_Raffle.CallOpts, _questID)
 }
 
 // GetQuest is a free data retrieval call binding the contract method 0x49f86f34.
 //
-// Solidity: function getQuest(uint256 _questID) view returns(bool _active, (uint64,uint64,bytes32,bytes) random, bytes32 _merkleRoot)
+// Solidity: function getQuest(uint256 _questID) view returns(bool _active, (uint64,uint64,bytes32,bytes) random, uint256 _participantCount, uint256 _winnerCount, bytes32 _merkleRoot)
 func (_Raffle *RaffleCallerSession) GetQuest(_questID *big.Int) (struct {
-	Active     bool
-	Random     IDrandOracleRandom
-	MerkleRoot [32]byte
+	Active           bool
+	Random           IDrandOracleRandom
+	ParticipantCount *big.Int
+	WinnerCount      *big.Int
+	MerkleRoot       [32]byte
 }, error) {
 	return _Raffle.Contract.GetQuest(&_Raffle.CallOpts, _questID)
 }
