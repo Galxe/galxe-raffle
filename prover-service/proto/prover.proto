@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package prover;
+
+service ProverService {
+  // Generate SP1 zero-knowledge proof using the Prover Network
+  rpc Prove(ProveRequest) returns (ProveResponse);
+}
+
+enum ProofSystem {
+  PROOF_SYSTEM_UNSPECIFIED = 0;
+  PROOF_SYSTEM_PLONK = 1;
+  PROOF_SYSTEM_GROTH16 = 2;
+}
+
+message ProveRequest {
+  ProofSystem system = 1;
+  uint32 num_participants = 2;
+  uint32 num_winners = 3;
+  string randomness = 4; // 32 bytes
+}
+
+message ProveResponse {
+  // ID of the proof, can be used to view on the prover network explorer
+  string proof_id = 1;
+  string public_values = 2;
+  string proof = 3;
+  uint32 num_participants = 4;
+  uint32 num_winners = 5;
+  string randomness = 6;
+  string merkle_root = 7;
+}
