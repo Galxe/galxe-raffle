@@ -6,6 +6,6 @@ pub mod proto {
 }
 
 pub mod service;
-
+pub mod utils;
 // Re-export common types
 pub use proto::prover::{ProofSystem, ProveRequest, ProveResponse};

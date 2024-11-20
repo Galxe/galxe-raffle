@@ -6,6 +6,7 @@ A raffle system powered by SP1 zero-knowledge proofs and Galxe Raffle smart cont
 
 - `zk/`: Contains the SP1 RISC-V program and proof generation scripts.
 - `contracts/`: Contains the Raffle smart contract.
+- `prover-service/`: Contains a GRPC server for generating zero-knowledge proofs using the Prover Network.
 - `go/`: Contains the Golang bindings for the Raffle smart contract, as well as a library for running the raffle offchain.
 
 ## 🔑 ZK
