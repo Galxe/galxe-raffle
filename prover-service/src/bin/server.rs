@@ -2,6 +2,7 @@ use clap::Parser;
 use prover_service::proto::prover::prover_service_server::ProverServiceServer;
 use prover_service::service::ProverServiceImpl;
 use tonic::transport::Server;
+use tonic_health::server::health_reporter;
 
 #[derive(Parser)]
 #[command(
@@ -40,10 +41,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = format!("[::1]:{}", args.port).parse()?;
     let service: ProverServiceImpl =
         ProverServiceImpl::new(&args.private_key, &args.elf_path, args.timeout_secs)?;
-    log::info!("ProverService listening on {}", addr);
+
+    // Set up health checks
+    let (mut health_reporter, health_service) = health_reporter();
+    health_reporter
+        .set_serving::<ProverServiceServer<ProverServiceImpl>>()
+        .await;
 
     // Serve requests
+    log::info!("Health Server and GRPC Prover Server listening on {}", addr);
     Server::builder()
+        .add_service(health_service)
         .add_service(ProverServiceServer::new(service))
         .serve(addr)
         .await?;
