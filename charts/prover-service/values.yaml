@@ -1,0 +1,21 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/galxe/galxe-raffle/prover-service
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+useExistingSecrets: false
+existingSecretName: ""
+
+# Only used if useExistingSecrets is false
+secrets:
+  privateKey: ""

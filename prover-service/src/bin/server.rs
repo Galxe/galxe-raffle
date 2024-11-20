@@ -17,7 +17,8 @@ struct Args {
     port: u16,
 
     /// Private key of the prover (must be allowlisted by the prover network for now)
-    #[arg(long)]
+    /// Can be provided via PRIVATE_KEY environment variable
+    #[arg(long, env = "PRIVATE_KEY")]
     private_key: String,
 
     /// Path to the ELF file
