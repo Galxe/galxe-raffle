@@ -13,7 +13,7 @@ use tonic_health::server::health_reporter;
 )]
 struct Args {
     /// Port number for the server
-    #[arg(long, default_value = "9090")]
+    #[arg(long, default_value = "9090", env = "PORT")]
     port: u16,
 
     /// Private key of the prover (must be allowlisted by the prover network for now)
@@ -22,11 +22,15 @@ struct Args {
     private_key: String,
 
     /// Path to the ELF file
-    #[arg(long, default_value = "elf/riscv32im-succinct-zkvm-elf")]
+    #[arg(
+        long,
+        default_value = "elf/riscv32im-succinct-zkvm-elf",
+        env = "ELF_PATH"
+    )]
     elf_path: String,
 
     /// Timeout for waiting for the proof in seconds
-    #[arg(long, default_value = "300")]
+    #[arg(long, default_value = "300", env = "TIMEOUT_SECS")]
     timeout_secs: u64,
 }
 
@@ -39,7 +43,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
     // Start the server
-    let addr = format!("[::1]:{}", args.port).parse()?;
+    let addr = format!("0.0.0.0:{}", args.port).parse()?;
     let service: ProverServiceImpl =
         ProverServiceImpl::new(&args.private_key, &args.elf_path, args.timeout_secs)?;
 
