@@ -1,8 +1,10 @@
 use clap::Parser;
 use prover_service::proto::prover::prover_service_server::ProverServiceServer;
 use prover_service::service::ProverServiceImpl;
+use std::net::SocketAddr;
 use tonic::transport::Server;
 use tonic_health::server::health_reporter;
+use warp::Filter;
 
 #[derive(Parser)]
 #[command(
@@ -32,6 +34,10 @@ struct Args {
     /// Timeout for waiting for the proof in seconds
     #[arg(long, default_value = "300", env = "TIMEOUT_SECS")]
     timeout_secs: u64,
+
+    /// Port number for Prometheus metrics
+    #[arg(long, default_value = "4014", env = "METRICS_PORT")]
+    metrics_port: u16,
 }
 
 #[tokio::main]
@@ -52,6 +58,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     health_reporter
         .set_serving::<ProverServiceServer<ProverServiceImpl>>()
         .await;
+
+    // Start Prometheus metrics endpoint
+    let metrics_addr = format!("0.0.0.0:{}", args.metrics_port);
+    let metrics_route = warp::path!("metrics").and_then(|| async {
+        use prometheus::Encoder;
+        let encoder = prometheus::TextEncoder::new();
+        let mut buffer = Vec::new();
+        encoder.encode(&prometheus::gather(), &mut buffer).unwrap();
+        Ok::<_, warp::Rejection>(String::from_utf8(buffer).unwrap())
+    });
+
+    tokio::spawn(async move {
+        log::info!("Prometheus metrics server listening on {}", metrics_addr);
+        warp::serve(metrics_route)
+            .run(metrics_addr.parse::<SocketAddr>().unwrap())
+            .await;
+    });
 
     // Serve requests
     log::info!("Health Server and GRPC Prover Server listening on {}", addr);

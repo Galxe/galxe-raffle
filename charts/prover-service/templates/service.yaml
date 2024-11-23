@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{include "service.fullname" .}}
+  labels: {{- include "service.labels" . | nindent 4}}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9090
+      targetPort: grpc
+      protocol: TCP
+      name: grpc
+    - port: 4014
+      targetPort: http-prometheus
+      protocol: TCP
+      name: http-prometheus
+  selector: {{- include "service.selectorLabels" . | nindent 4}}

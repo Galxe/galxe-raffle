@@ -1,5 +1,6 @@
 use alloy_sol_types::sol;
 use alloy_sol_types::SolType;
+use prometheus::{register_histogram_vec, register_int_counter_vec, HistogramVec, IntCounterVec};
 use sp1_sdk::network::proto::network::ProofMode;
 use sp1_sdk::network::prover::NetworkProver;
 use sp1_sdk::SP1Stdin;
@@ -9,6 +10,9 @@ use tonic::{Request, Response, Status};
 use crate::proto::prover::prover_service_server::ProverService;
 use crate::proto::prover::{ProofSystem, ProveRequest, ProveResponse};
 use crate::utils::hex::parse_hex_string;
+
+const METRIC_LABEL_SUCCESS: &str = "success";
+const METRIC_LABEL_ERROR: &str = "error";
 
 pub struct ProverServiceImpl {
     elf: Vec<u8>,
@@ -38,77 +42,111 @@ sol! {
     }
 }
 
+// Add metrics as lazy static
+lazy_static::lazy_static! {
+    pub static ref PROVE_REQUEST_DURATION: HistogramVec = register_histogram_vec!(
+        "prove_request_duration_seconds",
+        "Time taken to process prove requests",
+        &["status"]
+    ).unwrap();
+
+    pub static ref PROVE_REQUEST_COUNTER: IntCounterVec = register_int_counter_vec!(
+        "prove_request_total",
+        "Total number of prove requests",
+        &["status"]
+    ).unwrap();
+}
+
 #[tonic::async_trait]
 impl ProverService for ProverServiceImpl {
     async fn prove(
         &self,
         request: Request<ProveRequest>,
     ) -> Result<Response<ProveResponse>, Status> {
-        let req = request.into_inner();
+        // Start timing the request
+        let start_time = std::time::Instant::now();
 
-        let randomness = parse_hex_string(&req.randomness)
-            .map_err(|e| Status::invalid_argument(&format!("Invalid hex randomness: {}", e)))?;
+        let result: Result<Response<ProveResponse>, Status> = async {
+            let req = request.into_inner();
 
-        let proof_system = ProofSystem::try_from(req.system)
-            .map_err(|e| Status::invalid_argument(&format!("Invalid proof system: {}", e)))?;
+            let randomness = parse_hex_string(&req.randomness)
+                .map_err(|e| Status::invalid_argument(&format!("Invalid hex randomness: {}", e)))?;
 
-        let mut stdin = SP1Stdin::new();
-        stdin.write(&req.num_participants);
-        stdin.write(&req.num_winners);
-        stdin.write(&randomness);
+            let proof_system = ProofSystem::try_from(req.system)
+                .map_err(|e| Status::invalid_argument(&format!("Invalid proof system: {}", e)))?;
 
-        let proof_mode = match proof_system {
-            ProofSystem::Unspecified => {
-                return Err(Status::invalid_argument("Proof system must be specified"));
-            }
-            ProofSystem::Plonk => ProofMode::Plonk,
-            ProofSystem::Groth16 => ProofMode::Groth16,
+            let mut stdin = SP1Stdin::new();
+            stdin.write(&req.num_participants);
+            stdin.write(&req.num_winners);
+            stdin.write(&randomness);
+
+            let proof_mode = match proof_system {
+                ProofSystem::Unspecified => {
+                    return Err(Status::invalid_argument("Proof system must be specified"));
+                }
+                ProofSystem::Plonk => ProofMode::Plonk,
+                ProofSystem::Groth16 => ProofMode::Groth16,
+            };
+
+            let proof_id = self
+                .prover
+                .request_proof(self.elf.as_slice(), stdin, proof_mode)
+                .await
+                .map_err(|e| Status::internal(e.to_string()))?;
+
+            log::info!(
+                "Proof requested. ID: {}, System: {}",
+                proof_id,
+                proof_system.as_str_name()
+            );
+
+            // Wait for the proof with timeout
+            let proof = self
+                .prover
+                .wait_proof(&proof_id, Some(Duration::from_secs(self.timeout_secs)))
+                .await
+                .map_err(|e| Status::internal(e.to_string()))?;
+
+            let bytes = proof.public_values.as_slice();
+            let PubValStruct {
+                num_participants,
+                num_winners,
+                randomness,
+                merkle_root,
+            } = PubValStruct::abi_decode(bytes, false).unwrap();
+
+            log::info!(
+                "{}: Num Participants: {}, Num Winners: {}, Randomness: 0x{}, Merkle Root: 0x{}",
+                proof_id,
+                num_participants,
+                num_winners,
+                hex::encode(randomness.as_slice()),
+                hex::encode(merkle_root.as_slice())
+            );
+
+            Ok(Response::new(ProveResponse {
+                proof_id,
+                public_values: format!("0x{}", hex::encode(bytes)),
+                proof: format!("0x{}", hex::encode(proof.bytes())),
+                num_participants,
+                num_winners,
+                randomness: format!("0x{}", hex::encode(&randomness.as_slice())),
+                merkle_root: format!("0x{}", hex::encode(merkle_root.as_slice())),
+            }))
+        }
+        .await;
+
+        // Create timer only after we know the result
+        let request_duration = start_time.elapsed().as_secs_f64();
+        let label = if result.is_ok() {
+            METRIC_LABEL_SUCCESS
+        } else {
+            METRIC_LABEL_ERROR
         };
-
-        let proof_id = self
-            .prover
-            .request_proof(self.elf.as_slice(), stdin, proof_mode)
-            .await
-            .map_err(|e| Status::internal(e.to_string()))?;
-
-        log::info!(
-            "Proof requested. ID: {}, System: {}",
-            proof_id,
-            proof_system.as_str_name()
-        );
-
-        // Wait for the proof with timeout
-        let proof = self
-            .prover
-            .wait_proof(&proof_id, Some(Duration::from_secs(self.timeout_secs)))
-            .await
-            .map_err(|e| Status::internal(e.to_string()))?;
-
-        let bytes = proof.public_values.as_slice();
-        let PubValStruct {
-            num_participants,
-            num_winners,
-            randomness,
-            merkle_root,
-        } = PubValStruct::abi_decode(bytes, false).unwrap();
-
-        log::info!(
-            "{}: Num Participants: {}, Num Winners: {}, Randomness: 0x{}, Merkle Root: 0x{}",
-            proof_id,
-            num_participants,
-            num_winners,
-            hex::encode(randomness.as_slice()),
-            hex::encode(merkle_root.as_slice())
-        );
-
-        Ok(Response::new(ProveResponse {
-            proof_id,
-            public_values: format!("0x{}", hex::encode(bytes)),
-            proof: format!("0x{}", hex::encode(proof.bytes())),
-            num_participants,
-            num_winners,
-            randomness: format!("0x{}", hex::encode(&randomness.as_slice())),
-            merkle_root: format!("0x{}", hex::encode(merkle_root.as_slice())),
-        }))
+        PROVE_REQUEST_DURATION
+            .with_label_values(&[label])
+            .observe(request_duration);
+        PROVE_REQUEST_COUNTER.with_label_values(&[label]).inc();
+        result
     }
 }
