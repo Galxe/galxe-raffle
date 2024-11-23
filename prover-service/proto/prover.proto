@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package prover;
 
+option go_package = "github.com/Galxe/galxe-raffle/go/pkg/prover;prover";
+
 service ProverService {
   // Generate SP1 zero-knowledge proof using the Prover Network
   rpc Prove(ProveRequest) returns (ProveResponse);
