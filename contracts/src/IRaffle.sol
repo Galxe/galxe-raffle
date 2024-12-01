@@ -41,7 +41,7 @@ interface IRaffle {
     event VerifierUpdated(address verifier);
     event VkeyUpdated(bytes32 vkey);
     event DrandOracleUpdated(address drandOracle);
-    event Participate(uint64 questID, uint256 user, uint64 verifyID);
+    event Participate(uint256 participantID, uint64 questID, uint256 user, uint64 verifyID);
     event CommitRandomness(uint64 questID, uint64 roundID, bytes32 randomness);
     event Reveal(uint64 questID, uint32 participantCount, uint32 winnerCount, bytes32 randomness, bytes32 merkleRoot);
 

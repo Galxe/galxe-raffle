@@ -167,9 +167,11 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
         BitMaps.set(verifyIds, _verifyID);
 
         quest.participantCount++;
-        quest.participantIds[uint256(uint160(_user))] = quest.participantCount;
 
-        emit IRaffle.Participate(_questID, _user, _verifyID);
+        uint256 participantID = quest.participantCount;
+        quest.participantIds[uint256(uint160(_user))] = participantID;
+
+        emit IRaffle.Participate(participantID, _questID, _user, _verifyID);
     }
 
     /// @notice Commits the randomness for the quest.
