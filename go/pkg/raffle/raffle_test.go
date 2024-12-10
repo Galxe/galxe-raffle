@@ -3,7 +3,10 @@ package raffle
 import (
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
+	"math"
 	"os"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -81,4 +84,74 @@ func (s *Suite) TestRevealRaffleWinners_1000_choose_900() {
 	s.Equal(int(s.fixture.NumWinners), len(winners), "incorrect number of winners")
 	s.Equal(s.merkleRoot, root, "Merkle root mismatch")
 	s.Equal(s.merkleRoot, tree[len(tree)-1], "Merkle tree root mismatch")
+}
+
+func (s *Suite) TestGenerateMerkleProof_1000_choose_10() {
+	s.loadFixture(raffleFixture_1000_choose_10)
+	proofSize := int(math.Ceil(math.Log2(float64(s.fixture.NumWinners))))
+
+	winners, tree, root := RevealRaffleWinners(s.fixture.NumParticipants, s.fixture.NumWinners, s.randomness)
+
+	// verify all winner proofs
+	for _, participantID := range winners {
+		merkleProof := GenerateMerkleProof(participantID, winners, tree)
+		hexProof := make([]string, len(merkleProof))
+		for i, proof := range merkleProof {
+			hexProof[i] = fmt.Sprintf("0x%x", proof)
+		}
+		s.Equal(proofSize, len(merkleProof), "Merkle proof size mismatch")
+
+		proofHex := make([]string, len(merkleProof))
+		for i, proof := range merkleProof {
+			proofHex[i] = fmt.Sprintf("0x%x", proof)
+		}
+
+		verified := VerifyMerkleProof(participantID, winners, merkleProof, root)
+		s.True(verified, "Merkle proof verification failed")
+	}
+
+	// verify non-winner proofs
+	for participantID := uint32(0); participantID < s.fixture.NumParticipants; participantID++ {
+		if !slices.Contains(winners, participantID) {
+			merkleProof := GenerateMerkleProof(participantID, winners, tree)
+			s.Equal(0, len(merkleProof), "Merkle proof size should be 0 for non-winner")
+			verified := VerifyMerkleProof(participantID, winners, merkleProof, root)
+			s.False(verified, "Merkle proof verification failed for non-winner")
+		}
+	}
+}
+
+func (s *Suite) TestGenerateMerkleProof_1000_choose_900() {
+	s.loadFixture(raffleFixture_1000_choose_900)
+	proofSize := int(math.Ceil(math.Log2(float64(s.fixture.NumWinners))))
+
+	winners, tree, root := RevealRaffleWinners(s.fixture.NumParticipants, s.fixture.NumWinners, s.randomness)
+
+	// verify all winner proofs
+	for _, participantID := range winners {
+		merkleProof := GenerateMerkleProof(participantID, winners, tree)
+		hexProof := make([]string, len(merkleProof))
+		for i, proof := range merkleProof {
+			hexProof[i] = fmt.Sprintf("0x%x", proof)
+		}
+		s.Equal(proofSize, len(merkleProof), "Merkle proof size mismatch")
+
+		proofHex := make([]string, len(merkleProof))
+		for i, proof := range merkleProof {
+			proofHex[i] = fmt.Sprintf("0x%x", proof)
+		}
+
+		verified := VerifyMerkleProof(participantID, winners, merkleProof, root)
+		s.True(verified, "Merkle proof verification failed")
+	}
+
+	// verify non-winner proofs
+	for participantID := uint32(0); participantID < s.fixture.NumParticipants; participantID++ {
+		if !slices.Contains(winners, participantID) {
+			merkleProof := GenerateMerkleProof(participantID, winners, tree)
+			s.Equal(0, len(merkleProof), "Merkle proof size should be 0 for non-winner")
+			verified := VerifyMerkleProof(participantID, winners, merkleProof, root)
+			s.False(verified, "Merkle proof verification failed for non-winner")
+		}
+	}
 }

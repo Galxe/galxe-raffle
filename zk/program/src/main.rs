@@ -63,6 +63,9 @@ fn calculate_merkle_root(winners: &[u32]) -> [u8; 32] {
             hasher.update(&chunk[0]);
             if chunk.len() > 1 {
                 hasher.update(&chunk[1]);
+            } else {
+                // If there's no right child, hash with self
+                hasher.update(&chunk[0]);
             }
             new_hashes.push(hasher.finalize().into());
         }
