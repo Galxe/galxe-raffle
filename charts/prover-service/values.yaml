@@ -19,3 +19,5 @@ existingSecretName: ""
 # Only used if useExistingSecrets is false
 secrets:
   privateKey: ""
+
+configMap: {}
