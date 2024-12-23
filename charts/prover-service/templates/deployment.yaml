@@ -24,6 +24,8 @@ spec:
             - containerPort: 4014
               name: http-prometheus
           envFrom:
+            - configMapRef:
+                name: {{ include "service.fullname" . }}
             - secretRef:
                 name: {{ if .Values.useExistingSecrets }}{{ .Values.existingSecretName }}{{ else }}{{ include "service.fullname" . }}{{ end }}
           resources:
