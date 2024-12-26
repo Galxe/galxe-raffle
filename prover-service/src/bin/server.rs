@@ -2,6 +2,7 @@ use clap::Parser;
 use prover_service::proto::prover::prover_service_server::ProverServiceServer;
 use prover_service::service::ProverServiceImpl;
 use std::net::SocketAddr;
+use tonic::codec::CompressionEncoding;
 use tonic::transport::Server;
 use tonic_health::server::health_reporter;
 use warp::Filter;
@@ -76,11 +77,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .await;
     });
 
+    // Start prover service
+    let prover_service = ProverServiceServer::new(service)
+        .accept_compressed(CompressionEncoding::Gzip)
+        .send_compressed(CompressionEncoding::Gzip);
+
     // Serve requests
     log::info!("Health Server and GRPC Prover Server listening on {}", addr);
     Server::builder()
         .add_service(health_service)
-        .add_service(ProverServiceServer::new(service))
+        .add_service(prover_service)
         .serve(addr)
         .await?;
     Ok(())
