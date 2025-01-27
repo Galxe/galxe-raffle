@@ -6,7 +6,7 @@ sp1_zkvm::entrypoint!(main);
 use alloy_sol_types::sol;
 use alloy_sol_types::SolType;
 use raffle_lib::raffle;
-use sha2_v0_9_8::{Digest as Digest_9_8, Sha256 as Sha256_9_8};
+use sha2_v0_9_9::{Digest as Digest_9_9, Sha256 as Sha256_9_9};
 
 pub fn main() {
     // Read the raffle event data
@@ -50,7 +50,7 @@ fn calculate_merkle_root(winners: &[u32]) -> [u8; 32] {
     let mut hashes: Vec<[u8; 32]> = winners
         .iter()
         .map(|&w| {
-            let mut hasher = Sha256_9_8::new();
+            let mut hasher = Sha256_9_9::new();
             hasher.update(w.to_le_bytes());
             hasher.finalize().into()
         })
@@ -59,7 +59,7 @@ fn calculate_merkle_root(winners: &[u32]) -> [u8; 32] {
     while hashes.len() > 1 {
         let mut new_hashes = Vec::new();
         for chunk in hashes.chunks(2) {
-            let mut hasher = Sha256_9_8::new();
+            let mut hasher = Sha256_9_9::new();
             hasher.update(&chunk[0]);
             if chunk.len() > 1 {
                 hasher.update(&chunk[1]);

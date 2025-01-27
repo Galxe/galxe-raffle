@@ -1,9 +1,9 @@
 use alloy_sol_types::{sol, SolType};
 use clap::Parser;
-use sp1_sdk::{ProverClient, SP1ProofWithPublicValues, SP1Stdin};
+use sp1_sdk::{include_elf, ProverClient, SP1ProofWithPublicValues, SP1Stdin};
 
 /// The ELF (executable and linkable format) file for the Succinct RISC-V zkVM.
-pub const ELF: &[u8] = include_bytes!("../../../elf/riscv32im-succinct-zkvm-elf");
+pub const ELF: &[u8] = include_elf!("galxe-raffle");
 
 /// The arguments for the command.
 #[derive(Parser, Debug)]
@@ -56,6 +56,7 @@ fn parse_hex_string(s: &str) -> Result<[u8; 32], String> {
 fn main() {
     // Setup the logger.
     sp1_sdk::utils::setup_logger();
+    dotenv::dotenv().ok();
 
     // Parse the command line arguments.
     let args = Args::parse();
@@ -71,11 +72,11 @@ fn main() {
     println!("Random seed: 0x{}", hex::encode(args.randomness));
 
     // Generate and verify the proof
-    let client: ProverClient = ProverClient::new();
+    let client = ProverClient::from_env();
 
     if args.execute {
         // Execute the program
-        let (output, report) = client.execute(ELF, stdin).run().unwrap();
+        let (output, report) = client.execute(ELF, &stdin).run().unwrap();
         println!("Program executed successfully.");
 
         // Read the output.
@@ -104,7 +105,7 @@ fn main() {
         // Setup the program for proving.
         let (pk, vk) = client.setup(ELF);
 
-        let proof: SP1ProofWithPublicValues = client.prove(&pk, stdin).run().unwrap();
+        let proof: SP1ProofWithPublicValues = client.prove(&pk, &stdin).run().unwrap();
 
         client.verify(&proof, &vk).expect("verification failed");
 

@@ -67,7 +67,7 @@ inside Solidity.
 To retrieve your `programVKey` for your on-chain contract, run the following command:
 
 ```sh
-cargo prove vkey --elf elf/riscv32im-succinct-zkvm-elf
+cargo run --release --bin vkey
 ```
 
 ## Using the Prover Network

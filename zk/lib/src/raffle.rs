@@ -1,4 +1,4 @@
-use sha2_v0_9_8::{Digest as Digest_sha2_9_8, Sha256 as Sha256_9_8};
+use sha2_v0_9_9::{Digest as Digest_sha2_9_9, Sha256 as Sha256_9_9};
 use std::collections::HashSet;
 
 pub fn raffle(num_participants: u32, num_winners: u32, randomness: u64) -> Vec<u32> {
@@ -33,7 +33,7 @@ pub fn raffle(num_participants: u32, num_winners: u32, randomness: u64) -> Vec<u
 }
 
 fn hash_sha2(seed: u64, value: u64) -> u64 {
-    let mut sha256: Sha256_9_8 = Sha256_9_8::new();
+    let mut sha256: Sha256_9_9 = Sha256_9_9::new();
     sha256.update(seed.to_le_bytes());
     sha256.update(value.to_le_bytes());
     let result = sha256.finalize();

@@ -21,7 +21,7 @@ contract RaffleScript is BaseScript {
         console.logBytes32(vkey);
         console.log("DrandOracle:", drandOracle);
 
-        Raffle raffle = new Raffle(owner, signer, verifier, vkey, drandOracle);
+        Raffle raffle = new Raffle{salt: CREATE2_SALT}(owner, signer, verifier, vkey, drandOracle);
         console.log("Raffle deployed at:", address(raffle));
 
         // Write address
