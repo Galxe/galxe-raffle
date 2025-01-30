@@ -8,7 +8,8 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     pkg-config \
     libssl-dev \
-    protobuf-compiler
+    protobuf-compiler \
+    g++
 
 COPY . .
 

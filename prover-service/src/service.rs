@@ -1,8 +1,10 @@
 use alloy_sol_types::sol;
 use alloy_sol_types::SolType;
 use prometheus::{register_histogram_vec, register_int_counter_vec, HistogramVec, IntCounterVec};
-use sp1_sdk::network::proto::network::ProofMode;
 use sp1_sdk::network::prover::NetworkProver;
+use sp1_sdk::Prover;
+use sp1_sdk::SP1ProofMode;
+use sp1_sdk::SP1ProvingKey;
 use sp1_sdk::SP1Stdin;
 use std::time::Duration;
 use tonic::{Request, Response, Status};
@@ -15,17 +17,23 @@ const METRIC_LABEL_SUCCESS: &str = "success";
 const METRIC_LABEL_ERROR: &str = "error";
 
 pub struct ProverServiceImpl {
-    elf: Vec<u8>,
+    pk: SP1ProvingKey,
     prover: NetworkProver,
     timeout_secs: u64,
 }
 
 impl ProverServiceImpl {
-    pub fn new(private_key: &str, elf_path: &str, timeout_secs: u64) -> std::io::Result<Self> {
-        let prover = NetworkProver::new_from_key(private_key);
+    pub fn new(
+        private_key: &str,
+        rpc_url: &str,
+        elf_path: &str,
+        timeout_secs: u64,
+    ) -> std::io::Result<Self> {
+        let prover = NetworkProver::new(private_key, rpc_url);
         let elf = std::fs::read(elf_path)?;
+        let (pk, _vk) = prover.setup(elf.as_slice());
         Ok(Self {
-            elf,
+            pk,
             prover,
             timeout_secs,
         })
@@ -84,15 +92,16 @@ impl ProverService for ProverServiceImpl {
                 ProofSystem::Unspecified => {
                     return Err(Status::invalid_argument("Proof system must be specified"));
                 }
-                ProofSystem::Plonk => ProofMode::Plonk,
-                ProofSystem::Groth16 => ProofMode::Groth16,
+                ProofSystem::Plonk => SP1ProofMode::Plonk,
+                ProofSystem::Groth16 => SP1ProofMode::Groth16,
             };
 
             let proof_id = self
                 .prover
-                .request_proof(self.elf.as_slice(), stdin, proof_mode)
-                .await
-                .map_err(|e| Status::internal(e.to_string()))?;
+                .prove(&self.pk, &stdin)
+                .mode(proof_mode)
+                .request()
+                .unwrap();
 
             log::info!(
                 "Proof requested. ID: {}, System: {}",
@@ -103,7 +112,7 @@ impl ProverService for ProverServiceImpl {
             // Wait for the proof with timeout
             let proof = self
                 .prover
-                .wait_proof(&proof_id, Some(Duration::from_secs(self.timeout_secs)))
+                .wait_proof(proof_id, Some(Duration::from_secs(self.timeout_secs)))
                 .await
                 .map_err(|e| Status::internal(e.to_string()))?;
 
@@ -125,7 +134,7 @@ impl ProverService for ProverServiceImpl {
             );
 
             Ok(Response::new(ProveResponse {
-                proof_id,
+                proof_id: proof_id.to_string(),
                 public_values: format!("0x{}", hex::encode(bytes)),
                 proof: format!("0x{}", hex::encode(proof.bytes())),
                 num_participants,

@@ -9,7 +9,7 @@ name = "server"
 path = "src/bin/server.rs"
 
 [dependencies]
-sp1-sdk = "3.0.0"
+sp1-sdk = "4.0.1"
 alloy-sol-types = "0.8.12"
 tonic = { version = "0.10", features = ["gzip"] }
 tonic-health = "0.10"

@@ -32,6 +32,14 @@ struct Args {
     )]
     elf_path: String,
 
+    /// RPC URL for the prover network
+    #[arg(
+        long,
+        default_value = "https://rpc.production.succinct.xyz",
+        env = "RPC_URL"
+    )]
+    rpc_url: String,
+
     /// Timeout for waiting for the proof in seconds
     #[arg(long, default_value = "300", env = "TIMEOUT_SECS")]
     timeout_secs: u64,
@@ -51,8 +59,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Start the server
     let addr = format!("0.0.0.0:{}", args.port).parse()?;
-    let service: ProverServiceImpl =
-        ProverServiceImpl::new(&args.private_key, &args.elf_path, args.timeout_secs)?;
+    let service: ProverServiceImpl = ProverServiceImpl::new(
+        &args.private_key,
+        &args.rpc_url,
+        &args.elf_path,
+        args.timeout_secs,
+    )?;
 
     // Set up health checks
     let (mut health_reporter, health_service) = health_reporter();
