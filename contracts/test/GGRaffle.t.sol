@@ -38,7 +38,7 @@ contract GGRaffleTest is Test {
     uint64 internal constant questRevealTimestamp = 1;
 
     bytes32 internal constant _TYPE_HASH =
-    keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
+        keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
     bytes32 _HASHED_NAME;
     bytes32 _HASHED_VERSION;
 
@@ -76,11 +76,7 @@ contract GGRaffleTest is Test {
 
     function test_e2e_success() public {
         SP1ProofFixtureJson memory fixture = loadFixture();
-        vm.mockCall(
-            verifier,
-            abi.encodeWithSelector(SP1VerifierGateway.verifyProof.selector),
-            abi.encode(true)
-        );
+        vm.mockCall(verifier, abi.encodeWithSelector(SP1VerifierGateway.verifyProof.selector), abi.encode(true));
         vm.mockCall(
             drandOracle,
             abi.encodeWithSelector(IDrandOracle.getRandomnessFromTimestamp.selector),
@@ -101,8 +97,7 @@ contract GGRaffleTest is Test {
             // generate verify id
             uint256 verifyID = uint256(i) + 1;
             // generate signature
-            (uint8 v, bytes32 r, bytes32 s) =
-                                vm.sign(signerPrivateKey, _hashParticipate(questID, newUser, verifyID));
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, _hashParticipate(questID, newUser, verifyID));
             bytes memory signature = abi.encodePacked(r, s, v);
             // console.logBytes32(_hashParticipate(questID, newUser, verifyID));
             // console.log("Raw signature:", vm.toString(signature));
@@ -112,7 +107,7 @@ contract GGRaffleTest is Test {
 
         // commit randomness
         (uint8 rv, bytes32 rr, bytes32 rs) =
-                            vm.sign(signerPrivateKey, _hashCommitRandomness(questID, questRevealTimestamp));
+            vm.sign(signerPrivateKey, _hashCommitRandomness(questID, questRevealTimestamp));
         bytes memory randomnessSignature = abi.encodePacked(rr, rs, rv);
         raffle.commitRandomness(questID, questRevealTimestamp, randomnessSignature);
 
@@ -137,11 +132,7 @@ contract GGRaffleTest is Test {
 
     function test_e2e_batch_success() public {
         SP1ProofFixtureJson memory fixture = loadFixture();
-        vm.mockCall(
-            verifier,
-            abi.encodeWithSelector(SP1VerifierGateway.verifyProof.selector),
-            abi.encode(true)
-        );
+        vm.mockCall(verifier, abi.encodeWithSelector(SP1VerifierGateway.verifyProof.selector), abi.encode(true));
         vm.mockCall(
             drandOracle,
             abi.encodeWithSelector(IDrandOracle.getRandomnessFromTimestamp.selector),
@@ -158,7 +149,6 @@ contract GGRaffleTest is Test {
         // generate participants
         uint256 count = 10;
         for (uint256 i = 0; i < fixture.numParticipants; i += count) {
-
             // generate new participant address
             uint256 newUser = uint256(i) + 1; // private key cannot be 0
 
@@ -169,7 +159,7 @@ contract GGRaffleTest is Test {
             }
             // generate signature
             (uint8 v, bytes32 r, bytes32 s) =
-                                vm.sign(signerPrivateKey, _hashParticipateBatch(questID, newUser, verifyIDs));
+                vm.sign(signerPrivateKey, _hashParticipateBatch(questID, newUser, verifyIDs));
             bytes memory signature = abi.encodePacked(r, s, v);
             // console.logBytes32(_hashParticipate(questID, newUser, verifyID));
             // console.log("Raw signature:", vm.toString(signature));
@@ -179,7 +169,7 @@ contract GGRaffleTest is Test {
 
         // commit randomness
         (uint8 rv, bytes32 rr, bytes32 rs) =
-                            vm.sign(signerPrivateKey, _hashCommitRandomness(questID, questRevealTimestamp));
+            vm.sign(signerPrivateKey, _hashCommitRandomness(questID, questRevealTimestamp));
         bytes memory randomnessSignature = abi.encodePacked(rr, rs, rv);
         raffle.commitRandomness(questID, questRevealTimestamp, randomnessSignature);
 
@@ -226,8 +216,7 @@ contract GGRaffleTest is Test {
             // generate verify id
             uint256 verifyID = uint256(i) + 1;
             // generate signature
-            (uint8 v, bytes32 r, bytes32 s) =
-                                vm.sign(signerPrivateKey, _hashParticipate(questID, newUser, verifyID));
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, _hashParticipate(questID, newUser, verifyID));
             bytes memory signature = abi.encodePacked(r, s, v);
             // participate
             raffle.participate(questID, newUser, verifyID, signature);
@@ -235,7 +224,7 @@ contract GGRaffleTest is Test {
 
         // commit randomness - ok
         (uint8 rv, bytes32 rr, bytes32 rs) =
-                            vm.sign(signerPrivateKey, _hashCommitRandomness(questID, questRevealTimestamp));
+            vm.sign(signerPrivateKey, _hashCommitRandomness(questID, questRevealTimestamp));
         bytes memory randomnessSignature = abi.encodePacked(rr, rs, rv);
         raffle.commitRandomness(questID, questRevealTimestamp, randomnessSignature);
 
@@ -267,15 +256,14 @@ contract GGRaffleTest is Test {
             // generate verify id
             uint256 verifyID = uint256(i) + 1;
             // generate signature
-            (uint8 v, bytes32 r, bytes32 s) =
-                                vm.sign(signerPrivateKey, _hashParticipate(questID, newUser, verifyID));
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, _hashParticipate(questID, newUser, verifyID));
             bytes memory signature = abi.encodePacked(r, s, v);
             // participate
             raffle.participate(questID, newUser, verifyID, signature);
         }
 
         (uint8 rv, bytes32 rr, bytes32 rs) =
-                            vm.sign(signerPrivateKey, _hashCommitRandomness(questID, questRevealTimestamp));
+            vm.sign(signerPrivateKey, _hashCommitRandomness(questID, questRevealTimestamp));
         bytes memory randomnessSignature = abi.encodePacked(rr, rs, rv);
         raffle.commitRandomness(questID, questRevealTimestamp, randomnessSignature);
 
@@ -311,22 +299,21 @@ contract GGRaffleTest is Test {
             // generate verify id
             uint64 verifyID = uint64(i) + 1;
             // generate signature
-            (uint8 v, bytes32 r, bytes32 s) =
-                                vm.sign(signerPrivateKey, _hashParticipate(questID, newUser, verifyID));
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, _hashParticipate(questID, newUser, verifyID));
             bytes memory signature = abi.encodePacked(r, s, v);
             // participate
             raffle.participate(questID, newUser, verifyID, signature);
         }
 
         (uint8 rv, bytes32 rr, bytes32 rs) =
-                            vm.sign(signerPrivateKey, _hashCommitRandomness(questID, questRevealTimestamp));
+            vm.sign(signerPrivateKey, _hashCommitRandomness(questID, questRevealTimestamp));
         bytes memory randomnessSignature = abi.encodePacked(rr, rs, rv);
         raffle.commitRandomness(questID, questRevealTimestamp, randomnessSignature);
 
         // reveal
         // modify the public values to be incorrect
         (uint32 participantCount, uint32 winnerCount, bytes32 randomness, bytes32 merkleRoot) =
-                            abi.decode(fixture.publicValues, (uint32, uint32, bytes32, bytes32));
+            abi.decode(fixture.publicValues, (uint32, uint32, bytes32, bytes32));
         bytes memory incorrectPublicValues = abi.encode(participantCount + 1, winnerCount, randomness, merkleRoot);
 
         vm.expectRevert(abi.encodeWithSelector(GGIRaffle.IncorrectProof.selector));
@@ -341,16 +328,17 @@ contract GGRaffleTest is Test {
         return _hashTypedDataV4(
             keccak256(
                 abi.encode(
-                    keccak256("Participate(uint256 questID,uint256 user,uint256 verifyID)"),
-                    _questID,
-                    _user,
-                    _verifyID
+                    keccak256("Participate(uint256 questID,uint256 user,uint256 verifyID)"), _questID, _user, _verifyID
                 )
             )
         );
     }
 
-    function _hashParticipateBatch(uint256 _questID, uint256 _user, uint256[] memory _verifyIDs) private view returns (bytes32) {
+    function _hashParticipateBatch(uint256 _questID, uint256 _user, uint256[] memory _verifyIDs)
+        private
+        view
+        returns (bytes32)
+    {
         return _hashTypedDataV4(
             keccak256(
                 abi.encode(
@@ -366,11 +354,7 @@ contract GGRaffleTest is Test {
     function _hashCommitRandomness(uint256 _questID, uint256 _timestamp) private view returns (bytes32) {
         return _hashTypedDataV4(
             keccak256(
-                abi.encode(
-                    keccak256("CommitRandomness(uint256 questID,uint256 timestamp)"),
-                    _questID,
-                    _timestamp
-                )
+                abi.encode(keccak256("CommitRandomness(uint256 questID,uint256 timestamp)"), _questID, _timestamp)
             )
         );
     }

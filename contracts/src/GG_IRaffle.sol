@@ -44,7 +44,14 @@ interface GGIRaffle {
     event DrandOracleUpdated(address drandOracle);
     event Participate(uint256 participantID, uint256 questID, uint256 user, uint256 verifyID);
     event CommitRandomness(uint256 questID, uint256 roundID, bytes32 randomness);
-    event Reveal(uint256 questID, uint256 raffleType, uint32 participantCount, uint32 winnerCount, bytes32 randomness, bytes32 merkleRoot);
+    event Reveal(
+        uint256 questID,
+        uint256 raffleType,
+        uint32 participantCount,
+        uint32 winnerCount,
+        bytes32 randomness,
+        bytes32 merkleRoot
+    );
 
     // Functions
     function pause() external;
@@ -53,22 +60,24 @@ interface GGIRaffle {
 
     function participate(uint256 _questID, uint256 _user, uint256 _verifyID, bytes calldata _signature) external;
 
-    function participateBatch(uint256 _questID, uint256 _user, uint256[] calldata _verifyIDs, bytes calldata _signature) external;
+    function participateBatch(uint256 _questID, uint256 _user, uint256[] calldata _verifyIDs, bytes calldata _signature)
+        external;
 
     function commitRandomness(uint256 _questID, uint256 _timestamp, bytes calldata _signature) external;
 
-    function reveal(uint256 _questID, uint256 _raffleType, bytes calldata _publicValues, bytes calldata _proofBytes) external;
+    function reveal(uint256 _questID, uint256 _raffleType, bytes calldata _publicValues, bytes calldata _proofBytes)
+        external;
 
     function getQuest(uint256 _questID, uint256 _raffleType)
-    external
-    view
-    returns (
-        bool _active,
-        IDrandOracle.Random memory random,
-        uint256 _participantCount,
-        uint256 _winnerCount,
-        bytes32 _merkleRoot
-    );
+        external
+        view
+        returns (
+            bool _active,
+            IDrandOracle.Random memory random,
+            uint256 _participantCount,
+            uint256 _winnerCount,
+            bytes32 _merkleRoot
+        );
 
     function hasParticipated(uint256 _verifyID) external view returns (bool);
 

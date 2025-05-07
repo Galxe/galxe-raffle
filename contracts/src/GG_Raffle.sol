@@ -41,7 +41,6 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
         bool active;
         IDrandOracle.Random random;
         uint256 participantCount;
-
         // raffleType --> raffleConfig
         mapping(uint256 => RaffleConfig) raffleConfigs;
     }
@@ -70,8 +69,8 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
     /// @param _verifier The SP1 verifier address.
     /// @param _vkey The verification key for the SP1 RISC-V program.
     constructor(address _initialOwner, address _signer, address _verifier, bytes32 _vkey, address _drandOracle)
-    Ownable(_initialOwner)
-    EIP712("Galxe GG Raffle", "1.0.0")
+        Ownable(_initialOwner)
+        EIP712("Galxe GG Raffle", "1.0.0")
     {
         if (address(_initialOwner) == address(0)) {
             revert GGIRaffle.InvalidAddress();
@@ -138,8 +137,8 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
     /// @param _verifyID The verify ID.
     /// @param _signature The signature.
     function participate(uint256 _questID, uint256 _user, uint256 _verifyID, bytes calldata _signature)
-    public
-    whenNotPaused
+        public
+        whenNotPaused
     {
         if (_questID == 0) {
             revert GGIRaffle.InvalidQuestID();
@@ -177,15 +176,14 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
         emit GGIRaffle.Participate(participantID, _questID, _user, _verifyID);
     }
 
-
     /// @notice ParticipatesBatch in the raffle reward quest.
     /// @param _questID The quest ID.
     /// @param _user The user address.
     /// @param _verifyIDs The verify ID array.
     /// @param _signature The signature.
     function participateBatch(uint256 _questID, uint256 _user, uint256[] calldata _verifyIDs, bytes calldata _signature)
-    public
-    whenNotPaused
+        public
+        whenNotPaused
     {
         if (_questID == 0) {
             revert GGIRaffle.InvalidQuestID();
@@ -233,7 +231,6 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
         }
     }
 
-
     /// @notice Commits the randomness for the quest.
     /// @param _questID The quest ID.
     /// @param _signature The signature.
@@ -274,7 +271,10 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
     /// @param _raffleType The raffle type (1 present grand, 2 present small).
     /// @param _publicValues The public value for proof verification encoded as bytes.
     /// @param _proofBytes The proof of the program execution the SP1 zkVM encoded as bytes.
-    function reveal(uint256 _questID, uint256 _raffleType, bytes calldata _publicValues, bytes calldata _proofBytes) public whenNotPaused {
+    function reveal(uint256 _questID, uint256 _raffleType, bytes calldata _publicValues, bytes calldata _proofBytes)
+        public
+        whenNotPaused
+    {
         GGRaffleQuest storage quest = quests[_questID];
 
         if (quest.questID == 0) {
@@ -290,7 +290,7 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
         }
 
         (uint32 participantCount, uint32 winnerCount, bytes32 randomness, bytes32 merkleRoot) =
-                            abi.decode(_publicValues, (uint32, uint32, bytes32, bytes32));
+            abi.decode(_publicValues, (uint32, uint32, bytes32, bytes32));
 
         if (participantCount != quest.participantCount || randomness != quest.random.randomness) {
             revert GGIRaffle.IncorrectProof();
@@ -305,18 +305,24 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
     }
 
     function getQuest(uint256 _questID, uint256 _raffleType)
-    external
-    view
-    returns (
-        bool _active,
-        IDrandOracle.Random memory random,
-        uint256 _participantCount,
-        uint256 _winnerCount,
-        bytes32 _merkleRoot
-    )
+        external
+        view
+        returns (
+            bool _active,
+            IDrandOracle.Random memory random,
+            uint256 _participantCount,
+            uint256 _winnerCount,
+            bytes32 _merkleRoot
+        )
     {
         GGRaffleQuest storage quest = quests[_questID];
-        return (quest.active, quest.random, quest.participantCount, quest.raffleConfigs[_raffleType].winnerCount, quest.raffleConfigs[_raffleType].merkleRoot);
+        return (
+            quest.active,
+            quest.random,
+            quest.participantCount,
+            quest.raffleConfigs[_raffleType].winnerCount,
+            quest.raffleConfigs[_raffleType].merkleRoot
+        );
     }
 
     function hasParticipated(uint256 _verifyID) public view returns (bool) {
@@ -331,24 +337,21 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
         return _hashTypedDataV4(
             keccak256(
                 abi.encode(
-                    keccak256(
-                        "Participate(uint256 questID,uint256 user,uint256 verifyID)"
-                    ),
-                    _questID,
-                    _user,
-                    _verifyID
+                    keccak256("Participate(uint256 questID,uint256 user,uint256 verifyID)"), _questID, _user, _verifyID
                 )
             )
         );
     }
 
-    function _hashParticipateBatch(uint256 _questID, uint256 _user, uint256[] calldata _verifyIDs) private view returns (bytes32) {
+    function _hashParticipateBatch(uint256 _questID, uint256 _user, uint256[] calldata _verifyIDs)
+        private
+        view
+        returns (bytes32)
+    {
         return _hashTypedDataV4(
             keccak256(
                 abi.encode(
-                    keccak256(
-                        "ParticipateBatch(uint256 questID,uint256 user,uint256[] verifyIDs)"
-                    ),
+                    keccak256("ParticipateBatch(uint256 questID,uint256 user,uint256[] verifyIDs)"),
                     _questID,
                     _user,
                     keccak256(abi.encodePacked(_verifyIDs))
@@ -360,12 +363,7 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
     function _hashCommitRandomness(uint256 _questID, uint256 _timestamp) private view returns (bytes32) {
         return _hashTypedDataV4(
             keccak256(
-                abi.encode(
-                    keccak256("CommitRandomness(uint256 questID,uint256 timestamp)"
-                    ),
-                    _questID,
-                    _timestamp
-                )
+                abi.encode(keccak256("CommitRandomness(uint256 questID,uint256 timestamp)"), _questID, _timestamp)
             )
         );
     }
