@@ -36,6 +36,7 @@ contract GGRaffleTest is Test {
     GGRaffle public raffle;
     uint64 internal constant questID = 123;
     uint64 internal constant questRevealTimestamp = 1;
+    uint8 internal constant questRate = 20;
 
     bytes32 internal constant _TYPE_HASH =
         keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
@@ -74,6 +75,8 @@ contract GGRaffleTest is Test {
         _HASHED_VERSION = hashedVersion;
     }
 
+
+
     function test_e2e_success() public {
         SP1ProofFixtureJson memory fixture = loadFixture();
         vm.mockCall(verifier, abi.encodeWithSelector(SP1VerifierGateway.verifyProof.selector), abi.encode(true));
@@ -91,28 +94,36 @@ contract GGRaffleTest is Test {
         );
 
         // generate participants
+        uint256 expiredAt = block.timestamp + 1 hours;
         for (uint256 i = 0; i < fixture.numParticipants; i++) {
             // generate new participant address
             uint256 newUser = uint256(i) + 1; // private key cannot be 0
             // generate verify id
             uint256 verifyID = uint256(i) + 1;
             // generate signature
-            (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, _hashParticipate(questID, newUser, verifyID));
+            (uint8 v, bytes32 r, bytes32 s) =
+                vm.sign(signerPrivateKey, _hashParticipate(questID, newUser, verifyID, expiredAt));
             bytes memory signature = abi.encodePacked(r, s, v);
             // console.logBytes32(_hashParticipate(questID, newUser, verifyID));
             // console.log("Raw signature:", vm.toString(signature));
             // participate
-            raffle.participate(questID, newUser, verifyID, signature);
+            raffle.participate(questID, newUser, verifyID, expiredAt, signature);
         }
 
         // commit randomness
         (uint8 rv, bytes32 rr, bytes32 rs) =
-            vm.sign(signerPrivateKey, _hashCommitRandomness(questID, questRevealTimestamp));
+            vm.sign(signerPrivateKey, _hashCommitRandomness(questID, questRevealTimestamp, questRate));
         bytes memory randomnessSignature = abi.encodePacked(rr, rs, rv);
-        raffle.commitRandomness(questID, questRevealTimestamp, randomnessSignature);
+        raffle.commitRandomness(questID, questRevealTimestamp, questRate, randomnessSignature);
 
         // reveal
         raffle.reveal(questID, 1, fixture.publicValues, fixture.proof);
+
+        // commit randomness failed due to quset not active
+        (rv, rr, rs) = vm.sign(signerPrivateKey, _hashCommitRandomness(questID, questRevealTimestamp+1, questRate));
+        randomnessSignature = abi.encodePacked(rr, rs, rv);
+        vm.expectRevert(abi.encodeWithSelector(GGIRaffle.QuestNotActive.selector));
+        raffle.commitRandomness(questID, questRevealTimestamp+1, questRate, randomnessSignature);
 
         // verify quest state
         (
@@ -120,7 +131,8 @@ contract GGRaffleTest is Test {
             IDrandOracle.Random memory random,
             uint256 participantCount,
             uint256 winnerCount,
-            bytes32 merkleRoot
+            bytes32 merkleRoot,
+            uint8 rate
         ) = raffle.getQuest(questID, 1);
         assertEq(random.round, 1);
         assertEq(random.randomness, fixture.randomness);
@@ -148,9 +160,11 @@ contract GGRaffleTest is Test {
 
         // generate participants
         uint256 count = 10;
+        uint256 expiredAt = block.timestamp + 1 hours;
         for (uint256 i = 0; i < fixture.numParticipants; i += count) {
             // generate new participant address
             uint256 newUser = uint256(i) + 1; // private key cannot be 0
+            uint256 tmpExpiredAt = expiredAt + i;
 
             // generate verifyIDs
             uint256[] memory verifyIDs = new uint256[](count);
@@ -159,19 +173,19 @@ contract GGRaffleTest is Test {
             }
             // generate signature
             (uint8 v, bytes32 r, bytes32 s) =
-                vm.sign(signerPrivateKey, _hashParticipateBatch(questID, newUser, verifyIDs));
+                vm.sign(signerPrivateKey, _hashParticipateBatch(questID, newUser, verifyIDs, tmpExpiredAt));
             bytes memory signature = abi.encodePacked(r, s, v);
             // console.logBytes32(_hashParticipate(questID, newUser, verifyID));
             // console.log("Raw signature:", vm.toString(signature));
             // participate
-            raffle.participateBatch(questID, newUser, verifyIDs, signature);
+            raffle.participateBatch(questID, newUser, verifyIDs, tmpExpiredAt, signature);
         }
 
         // commit randomness
         (uint8 rv, bytes32 rr, bytes32 rs) =
-            vm.sign(signerPrivateKey, _hashCommitRandomness(questID, questRevealTimestamp));
+            vm.sign(signerPrivateKey, _hashCommitRandomness(questID, questRevealTimestamp, questRate));
         bytes memory randomnessSignature = abi.encodePacked(rr, rs, rv);
-        raffle.commitRandomness(questID, questRevealTimestamp, randomnessSignature);
+        raffle.commitRandomness(questID, questRevealTimestamp, questRate, randomnessSignature);
 
         // reveal
         raffle.reveal(questID, 2, fixture.publicValues, fixture.proof);
@@ -182,7 +196,8 @@ contract GGRaffleTest is Test {
             IDrandOracle.Random memory random,
             uint256 participantCount,
             uint256 winnerCount,
-            bytes32 merkleRoot
+            bytes32 merkleRoot,
+            uint8 rate
         ) = raffle.getQuest(questID, 2);
         assertEq(random.round, 1);
         assertEq(random.randomness, fixture.randomness);
@@ -190,6 +205,73 @@ contract GGRaffleTest is Test {
         assertEq(winnerCount, fixture.numWinners);
         assertEq(active, false);
         assertEq(merkleRoot, fixture.merkleRoot);
+        assertEq(rate, questRate);
+    }
+
+    function test_participate_failure_signature_expired() public {
+        // participate failed due to signature expired
+        uint256 expiredAt = block.timestamp - 1 seconds;
+        uint256 newUser = 1;
+        uint256 verifyID = 1;
+        (uint8 v, bytes32 r, bytes32 s) =
+                            vm.sign(signerPrivateKey, _hashParticipate(questID, newUser, verifyID, expiredAt));
+        bytes memory signature = abi.encodePacked(r, s, v);
+        vm.expectRevert(abi.encodeWithSelector(GGIRaffle.SignatureExpired.selector));
+        raffle.participate(questID, newUser, verifyID, expiredAt, signature);
+
+        // participate success
+        expiredAt = block.timestamp + 1 seconds;
+        (v, r, s) = vm.sign(signerPrivateKey, _hashParticipate(questID, newUser, verifyID, expiredAt));
+        signature = abi.encodePacked(r, s, v);
+        raffle.participate(questID, newUser, verifyID, expiredAt, signature);
+    }
+
+    function test_commit_randomness_failure_questID_not_exist() public {
+        // commit randomness failed due to questID not exist
+        (uint8 rv, bytes32 rr, bytes32 rs) =
+                            vm.sign(signerPrivateKey, _hashCommitRandomness(0, questRevealTimestamp, questRate));
+        bytes memory randomnessSignature = abi.encodePacked(rr, rs, rv);
+        vm.expectRevert(abi.encodeWithSelector(GGIRaffle.QuestNotExists.selector));
+        raffle.commitRandomness(0, questRevealTimestamp, questRate, randomnessSignature);
+    }
+
+    function test_commit_randomness_failure_rate_invalid() public {
+        SP1ProofFixtureJson memory fixture = loadFixture();
+        vm.mockCall(verifier, abi.encodeWithSelector(SP1VerifierGateway.verifyProof.selector), abi.encode(true));
+        vm.mockCall(
+            drandOracle,
+            abi.encodeWithSelector(IDrandOracle.getRandomnessFromTimestamp.selector),
+            abi.encode(
+                IDrandOracle.Random({
+                    round: 1,
+                    timestamp: questRevealTimestamp,
+                    randomness: fixture.randomness,
+                    signature: "0x1234"
+                })
+            )
+        );
+
+        // generate participants
+        uint256 expiredAt = block.timestamp + 1 hours;
+        for (uint256 i = 0; i < fixture.numParticipants; i++) {
+            // generate new participant address
+            uint256 newUser = uint256(i) + 1; // private key cannot be 0
+            // generate verify id
+            uint256 verifyID = uint256(i) + 1;
+            // generate signature
+            (uint8 v, bytes32 r, bytes32 s) =
+                                vm.sign(signerPrivateKey, _hashParticipate(questID, newUser, verifyID, expiredAt));
+            bytes memory signature = abi.encodePacked(r, s, v);
+            // participate
+            raffle.participate(questID, newUser, verifyID, expiredAt, signature);
+        }
+
+        // commit randomness failed due to rate invalid
+        (uint8 rv, bytes32 rr, bytes32 rs) =
+                            vm.sign(signerPrivateKey, _hashCommitRandomness(0, questRevealTimestamp, 100));
+        bytes memory randomnessSignature = abi.encodePacked(rr, rs, rv);
+        vm.expectRevert(abi.encodeWithSelector(GGIRaffle.InvalidRate.selector));
+        raffle.commitRandomness(questID, questRevealTimestamp, 100, randomnessSignature);
     }
 
     /// @notice Tests that the commit randomness fails if a randomness commit has already been made - quest is already not active
@@ -210,27 +292,29 @@ contract GGRaffleTest is Test {
         );
 
         // generate participants
+        uint256 expiredAt = block.timestamp + 1 hours;
         for (uint256 i = 0; i < fixture.numParticipants; i++) {
             // generate new participant address
             uint256 newUser = uint256(i) + 1; // private key cannot be 0
             // generate verify id
             uint256 verifyID = uint256(i) + 1;
             // generate signature
-            (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, _hashParticipate(questID, newUser, verifyID));
+            (uint8 v, bytes32 r, bytes32 s) =
+                vm.sign(signerPrivateKey, _hashParticipate(questID, newUser, verifyID, expiredAt));
             bytes memory signature = abi.encodePacked(r, s, v);
             // participate
-            raffle.participate(questID, newUser, verifyID, signature);
+            raffle.participate(questID, newUser, verifyID, expiredAt, signature);
         }
 
         // commit randomness - ok
         (uint8 rv, bytes32 rr, bytes32 rs) =
-            vm.sign(signerPrivateKey, _hashCommitRandomness(questID, questRevealTimestamp));
+            vm.sign(signerPrivateKey, _hashCommitRandomness(questID, questRevealTimestamp, questRate));
         bytes memory randomnessSignature = abi.encodePacked(rr, rs, rv);
-        raffle.commitRandomness(questID, questRevealTimestamp, randomnessSignature);
+        raffle.commitRandomness(questID, questRevealTimestamp, questRate, randomnessSignature);
 
         // commit randomness - fail
         vm.expectRevert(abi.encodeWithSelector(GGIRaffle.QuestNotActive.selector));
-        raffle.commitRandomness(questID, questRevealTimestamp, randomnessSignature);
+        raffle.commitRandomness(questID, questRevealTimestamp, questRate, randomnessSignature);
     }
 
     function test_reveal_failure_already_revealed() public {
@@ -250,22 +334,24 @@ contract GGRaffleTest is Test {
         );
 
         // generate participants
+        uint256 expiredAt = block.timestamp + 1 hours;
         for (uint256 i = 0; i < fixture.numParticipants; i++) {
             // generate new participant address
             uint256 newUser = uint256(i) + 1; // private key cannot be 0
             // generate verify id
             uint256 verifyID = uint256(i) + 1;
             // generate signature
-            (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, _hashParticipate(questID, newUser, verifyID));
+            (uint8 v, bytes32 r, bytes32 s) =
+                vm.sign(signerPrivateKey, _hashParticipate(questID, newUser, verifyID, expiredAt));
             bytes memory signature = abi.encodePacked(r, s, v);
             // participate
-            raffle.participate(questID, newUser, verifyID, signature);
+            raffle.participate(questID, newUser, verifyID, expiredAt, signature);
         }
 
         (uint8 rv, bytes32 rr, bytes32 rs) =
-            vm.sign(signerPrivateKey, _hashCommitRandomness(questID, questRevealTimestamp));
+            vm.sign(signerPrivateKey, _hashCommitRandomness(questID, questRevealTimestamp, questRate));
         bytes memory randomnessSignature = abi.encodePacked(rr, rs, rv);
-        raffle.commitRandomness(questID, questRevealTimestamp, randomnessSignature);
+        raffle.commitRandomness(questID, questRevealTimestamp, questRate, randomnessSignature);
 
         // reveal
         raffle.reveal(questID, 1, fixture.publicValues, fixture.proof);
@@ -293,22 +379,24 @@ contract GGRaffleTest is Test {
         );
 
         // generate participants
+        uint256 expiredAt = block.timestamp + 1 hours;
         for (uint256 i = 0; i < fixture.numParticipants; i++) {
             // generate new participant address
             uint256 newUser = uint256(i) + 1; // private key cannot be 0
             // generate verify id
             uint64 verifyID = uint64(i) + 1;
             // generate signature
-            (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, _hashParticipate(questID, newUser, verifyID));
+            (uint8 v, bytes32 r, bytes32 s) =
+                vm.sign(signerPrivateKey, _hashParticipate(questID, newUser, verifyID, expiredAt));
             bytes memory signature = abi.encodePacked(r, s, v);
             // participate
-            raffle.participate(questID, newUser, verifyID, signature);
+            raffle.participate(questID, newUser, verifyID, expiredAt, signature);
         }
 
         (uint8 rv, bytes32 rr, bytes32 rs) =
-            vm.sign(signerPrivateKey, _hashCommitRandomness(questID, questRevealTimestamp));
+            vm.sign(signerPrivateKey, _hashCommitRandomness(questID, questRevealTimestamp, questRate));
         bytes memory randomnessSignature = abi.encodePacked(rr, rs, rv);
-        raffle.commitRandomness(questID, questRevealTimestamp, randomnessSignature);
+        raffle.commitRandomness(questID, questRevealTimestamp, questRate, randomnessSignature);
 
         // reveal
         // modify the public values to be incorrect
@@ -324,17 +412,7 @@ contract GGRaffleTest is Test {
     }
 
     // --------------- hash functions ------------- //
-    function _hashParticipate(uint256 _questID, uint256 _user, uint256 _verifyID) private view returns (bytes32) {
-        return _hashTypedDataV4(
-            keccak256(
-                abi.encode(
-                    keccak256("Participate(uint256 questID,uint256 user,uint256 verifyID)"), _questID, _user, _verifyID
-                )
-            )
-        );
-    }
-
-    function _hashParticipateBatch(uint256 _questID, uint256 _user, uint256[] memory _verifyIDs)
+    function _hashParticipate(uint256 _questID, uint256 _user, uint256 _verifyID, uint256 _expiredAt)
         private
         view
         returns (bytes32)
@@ -342,19 +420,42 @@ contract GGRaffleTest is Test {
         return _hashTypedDataV4(
             keccak256(
                 abi.encode(
-                    keccak256("ParticipateBatch(uint256 questID,uint256 user,uint256[] verifyIDs)"),
+                    keccak256("Participate(uint256 questID,uint256 user,uint256 verifyID,uint256 expiredAt)"),
                     _questID,
                     _user,
-                    keccak256(abi.encodePacked(_verifyIDs))
+                    _verifyID,
+                    _expiredAt
                 )
             )
         );
     }
 
-    function _hashCommitRandomness(uint256 _questID, uint256 _timestamp) private view returns (bytes32) {
+    function _hashParticipateBatch(uint256 _questID, uint256 _user, uint256[] memory _verifyIDs, uint256 _expiredAt)
+        private
+        view
+        returns (bytes32)
+    {
         return _hashTypedDataV4(
             keccak256(
-                abi.encode(keccak256("CommitRandomness(uint256 questID,uint256 timestamp)"), _questID, _timestamp)
+                abi.encode(
+                    keccak256("ParticipateBatch(uint256 questID,uint256 user,uint256[] verifyIDs,uint256 expiredAt)"),
+                    _questID,
+                    _user,
+                    keccak256(abi.encodePacked(_verifyIDs)),
+                    _expiredAt
+                )
+            )
+        );
+    }
+
+    function _hashCommitRandomness(uint256 _questID, uint256 _timestamp, uint8 _rate) private view returns (bytes32) {
+        return _hashTypedDataV4(
+            keccak256(
+                abi.encode(keccak256("CommitRandomness(uint256 questID,uint256 timestamp,uint8 rate)"),
+                    _questID,
+                    _timestamp,
+                    _rate
+                )
             )
         );
     }

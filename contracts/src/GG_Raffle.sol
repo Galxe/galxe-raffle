@@ -41,6 +41,7 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
         bool active;
         IDrandOracle.Random random;
         uint256 participantCount;
+        uint8 rate; // 0-99/100, grand reward win rate
         // raffleType --> raffleConfig
         mapping(uint256 => RaffleConfig) raffleConfigs;
     }
@@ -136,10 +137,13 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
     /// @param _user The user address.
     /// @param _verifyID The verify ID.
     /// @param _signature The signature.
-    function participate(uint256 _questID, uint256 _user, uint256 _verifyID, bytes calldata _signature)
-        public
-        whenNotPaused
-    {
+    function participate(
+        uint256 _questID,
+        uint256 _user,
+        uint256 _verifyID,
+        uint256 _expiredAt,
+        bytes calldata _signature
+    ) public whenNotPaused {
         if (_questID == 0) {
             revert GGIRaffle.InvalidQuestID();
         }
@@ -148,11 +152,15 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
             revert GGIRaffle.InvalidAddress();
         }
 
+        if (_expiredAt < block.timestamp) {
+            revert SignatureExpired();
+        }
+
         if (hasParticipated(_verifyID)) {
             revert GGIRaffle.VerifyIdAlreadyUsed(_verifyID);
         }
 
-        bool isVerified = _verify(_hashParticipate(_questID, _user, _verifyID), _signature);
+        bool isVerified = _verify(_hashParticipate(_questID, _user, _verifyID, _expiredAt), _signature);
         if (!isVerified) {
             revert GGIRaffle.InvalidSignature();
         }
@@ -181,16 +189,23 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
     /// @param _user The user address.
     /// @param _verifyIDs The verify ID array.
     /// @param _signature The signature.
-    function participateBatch(uint256 _questID, uint256 _user, uint256[] calldata _verifyIDs, bytes calldata _signature)
-        public
-        whenNotPaused
-    {
+    function participateBatch(
+        uint256 _questID,
+        uint256 _user,
+        uint256[] calldata _verifyIDs,
+        uint256 _expiredAt,
+        bytes calldata _signature
+    ) public whenNotPaused {
         if (_questID == 0) {
             revert GGIRaffle.InvalidQuestID();
         }
 
         if (_user == 0) {
             revert GGIRaffle.InvalidAddress();
+        }
+
+        if (_expiredAt < block.timestamp) {
+            revert SignatureExpired();
         }
 
         if (_verifyIDs.length == 0) {
@@ -204,7 +219,7 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
             BitMaps.set(usedVerifyIds, _verifyIDs[i]);
         }
 
-        bool isVerified = _verify(_hashParticipateBatch(_questID, _user, _verifyIDs), _signature);
+        bool isVerified = _verify(_hashParticipateBatch(_questID, _user, _verifyIDs, _expiredAt), _signature);
         if (!isVerified) {
             revert GGIRaffle.InvalidSignature();
         }
@@ -220,7 +235,7 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
             }
         }
 
-        // less update for quest.participantCount to reduce gasfee
+        // less update for quest.participantCount to reduce gas fee
         uint256 _participantCount = quest.participantCount;
         quest.participantCount += _verifyIDs.length;
 
@@ -234,7 +249,7 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
     /// @notice Commits the randomness for the quest.
     /// @param _questID The quest ID.
     /// @param _signature The signature.
-    function commitRandomness(uint256 _questID, uint256 _timestamp, bytes calldata _signature) public {
+    function commitRandomness(uint256 _questID, uint256 _timestamp, uint8 _rate, bytes calldata _signature) public {
         GGRaffleQuest storage quest = quests[_questID];
 
         if (quest.questID == 0) {
@@ -249,7 +264,11 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
             revert GGIRaffle.QuestRandomnessAlreadyCommitted();
         }
 
-        bool isVerified = _verify(_hashCommitRandomness(_questID, _timestamp), _signature);
+        if (_rate < 0 || _rate > 99) {
+            revert GGIRaffle.InvalidRate();
+        }
+
+        bool isVerified = _verify(_hashCommitRandomness(_questID, _timestamp, _rate), _signature);
         if (!isVerified) {
             revert GGIRaffle.InvalidSignature();
         }
@@ -262,8 +281,9 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
 
         quest.random = random;
         quest.active = false;
+        quest.rate = _rate;
 
-        emit GGIRaffle.CommitRandomness(_questID, random.round, random.randomness);
+        emit GGIRaffle.CommitRandomness(_questID, _rate, random.round, random.randomness);
     }
 
     /// @notice Verifies the proof and reveals the raffle result.
@@ -312,7 +332,8 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
             IDrandOracle.Random memory random,
             uint256 _participantCount,
             uint256 _winnerCount,
-            bytes32 _merkleRoot
+            bytes32 _merkleRoot,
+            uint8 _rate
         )
     {
         GGRaffleQuest storage quest = quests[_questID];
@@ -321,7 +342,8 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
             quest.random,
             quest.participantCount,
             quest.raffleConfigs[_raffleType].winnerCount,
-            quest.raffleConfigs[_raffleType].merkleRoot
+            quest.raffleConfigs[_raffleType].merkleRoot,
+            quest.rate
         );
     }
 
@@ -333,17 +355,7 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
         return ECDSA.recover(_hash, _signature) == signer;
     }
 
-    function _hashParticipate(uint256 _questID, uint256 _user, uint256 _verifyID) private view returns (bytes32) {
-        return _hashTypedDataV4(
-            keccak256(
-                abi.encode(
-                    keccak256("Participate(uint256 questID,uint256 user,uint256 verifyID)"), _questID, _user, _verifyID
-                )
-            )
-        );
-    }
-
-    function _hashParticipateBatch(uint256 _questID, uint256 _user, uint256[] calldata _verifyIDs)
+    function _hashParticipate(uint256 _questID, uint256 _user, uint256 _verifyID, uint256 _expiredAt)
         private
         view
         returns (bytes32)
@@ -351,19 +363,42 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
         return _hashTypedDataV4(
             keccak256(
                 abi.encode(
-                    keccak256("ParticipateBatch(uint256 questID,uint256 user,uint256[] verifyIDs)"),
+                    keccak256("Participate(uint256 questID,uint256 user,uint256 verifyID,uint256 expiredAt)"),
                     _questID,
                     _user,
-                    keccak256(abi.encodePacked(_verifyIDs))
+                    _verifyID,
+                    _expiredAt
                 )
             )
         );
     }
 
-    function _hashCommitRandomness(uint256 _questID, uint256 _timestamp) private view returns (bytes32) {
+    function _hashParticipateBatch(uint256 _questID, uint256 _user, uint256[] calldata _verifyIDs, uint256 _expiredAt)
+        private
+        view
+        returns (bytes32)
+    {
         return _hashTypedDataV4(
             keccak256(
-                abi.encode(keccak256("CommitRandomness(uint256 questID,uint256 timestamp)"), _questID, _timestamp)
+                abi.encode(
+                    keccak256("ParticipateBatch(uint256 questID,uint256 user,uint256[] verifyIDs,uint256 expiredAt)"),
+                    _questID,
+                    _user,
+                    keccak256(abi.encodePacked(_verifyIDs)),
+                    _expiredAt
+                )
+            )
+        );
+    }
+
+    function _hashCommitRandomness(uint256 _questID, uint256 _timestamp, uint8 _rate) private view returns (bytes32) {
+        return _hashTypedDataV4(
+            keccak256(
+                abi.encode(keccak256("CommitRandomness(uint256 questID,uint256 timestamp,uint8 rate)"),
+                    _questID,
+                    _timestamp,
+                    _rate
+                )
             )
         );
     }

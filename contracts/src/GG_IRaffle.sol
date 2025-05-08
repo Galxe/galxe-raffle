@@ -29,12 +29,14 @@ interface GGIRaffle {
     error InvalidQuestIDArray();
     error InvalidRandomness();
     error InvalidSignature();
+    error SignatureExpired();
     error VerifyIdAlreadyUsed(uint256 verifyId);
     error QuestNotExists();
     error QuestNotActive();
     error QuestStillActive();
     error QuestRandomnessAlreadyCommitted();
     error QuestAlreadyRevealed();
+    error InvalidRate();
     error IncorrectProof();
 
     // Events
@@ -43,7 +45,7 @@ interface GGIRaffle {
     event VkeyUpdated(bytes32 vkey);
     event DrandOracleUpdated(address drandOracle);
     event Participate(uint256 participantID, uint256 questID, uint256 user, uint256 verifyID);
-    event CommitRandomness(uint256 questID, uint256 roundID, bytes32 randomness);
+    event CommitRandomness(uint256 questID, uint8 rate, uint256 roundID, bytes32 randomness);
     event Reveal(
         uint256 questID,
         uint256 raffleType,
@@ -58,12 +60,23 @@ interface GGIRaffle {
     function unpause() external;
     function setSigner(address _signer) external;
 
-    function participate(uint256 _questID, uint256 _user, uint256 _verifyID, bytes calldata _signature) external;
+    function participate(
+        uint256 _questID,
+        uint256 _user,
+        uint256 _verifyID,
+        uint256 _expiredAt,
+        bytes calldata _signature
+    ) external;
 
-    function participateBatch(uint256 _questID, uint256 _user, uint256[] calldata _verifyIDs, bytes calldata _signature)
-        external;
+    function participateBatch(
+        uint256 _questID,
+        uint256 _user,
+        uint256[] calldata _verifyIDs,
+        uint256 _expiredAt,
+        bytes calldata _signature
+    ) external;
 
-    function commitRandomness(uint256 _questID, uint256 _timestamp, bytes calldata _signature) external;
+    function commitRandomness(uint256 _questID, uint256 _timestamp, uint8 _rate, bytes calldata _signature) external;
 
     function reveal(uint256 _questID, uint256 _raffleType, bytes calldata _publicValues, bytes calldata _proofBytes)
         external;
@@ -76,7 +89,8 @@ interface GGIRaffle {
             IDrandOracle.Random memory random,
             uint256 _participantCount,
             uint256 _winnerCount,
-            bytes32 _merkleRoot
+            bytes32 _merkleRoot,
+            uint8 _rate
         );
 
     function hasParticipated(uint256 _verifyID) external view returns (bool);
