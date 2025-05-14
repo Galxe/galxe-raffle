@@ -9,7 +9,7 @@ interface IDrandOracle {
     /// @param signature The drand round signature
     struct Random {
         uint256 round;
-        uint256 timestamp;
+        uint64 timestamp;
         bytes32 randomness;
         bytes signature;
     }
@@ -17,7 +17,7 @@ interface IDrandOracle {
     /// @notice Retrieves the complete randomness data for a specific timestamp
     /// @param _timestamp The timestamp to query
     /// @return The Random struct containing the timestamp's data
-    function getRandomnessFromTimestamp(uint256 _timestamp) external view returns (Random memory);
+    function getRandomnessFromTimestamp(uint64 _timestamp) external view returns (Random memory);
 }
 
 /// @title Interface for Galxe Raffle Contract
@@ -76,7 +76,7 @@ interface GGIRaffle {
         bytes calldata _signature
     ) external;
 
-    function commitRandomness(uint256 _questID, uint256 _timestamp, uint8 _rate, bytes calldata _signature) external;
+    function commitRandomness(uint256 _questID, uint64 _timestamp, uint8 _rate, bytes calldata _signature) external;
 
     function reveal(uint256 _questID, uint256 _raffleType, bytes calldata _publicValues, bytes calldata _proofBytes)
         external;

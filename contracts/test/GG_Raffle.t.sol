@@ -75,8 +75,6 @@ contract GGRaffleTest is Test {
         _HASHED_VERSION = hashedVersion;
     }
 
-
-
     function test_e2e_success() public {
         SP1ProofFixtureJson memory fixture = loadFixture();
         vm.mockCall(verifier, abi.encodeWithSelector(SP1VerifierGateway.verifyProof.selector), abi.encode(true));
@@ -120,10 +118,10 @@ contract GGRaffleTest is Test {
         raffle.reveal(questID, 1, fixture.publicValues, fixture.proof);
 
         // commit randomness failed due to quset not active
-        (rv, rr, rs) = vm.sign(signerPrivateKey, _hashCommitRandomness(questID, questRevealTimestamp+1, questRate));
+        (rv, rr, rs) = vm.sign(signerPrivateKey, _hashCommitRandomness(questID, questRevealTimestamp + 1, questRate));
         randomnessSignature = abi.encodePacked(rr, rs, rv);
         vm.expectRevert(abi.encodeWithSelector(GGIRaffle.QuestNotActive.selector));
-        raffle.commitRandomness(questID, questRevealTimestamp+1, questRate, randomnessSignature);
+        raffle.commitRandomness(questID, questRevealTimestamp + 1, questRate, randomnessSignature);
 
         // verify quest state
         (
@@ -214,7 +212,7 @@ contract GGRaffleTest is Test {
         uint256 newUser = 1;
         uint256 verifyID = 1;
         (uint8 v, bytes32 r, bytes32 s) =
-                            vm.sign(signerPrivateKey, _hashParticipate(questID, newUser, verifyID, expiredAt));
+            vm.sign(signerPrivateKey, _hashParticipate(questID, newUser, verifyID, expiredAt));
         bytes memory signature = abi.encodePacked(r, s, v);
         vm.expectRevert(abi.encodeWithSelector(GGIRaffle.SignatureExpired.selector));
         raffle.participate(questID, newUser, verifyID, expiredAt, signature);
@@ -229,7 +227,7 @@ contract GGRaffleTest is Test {
     function test_commit_randomness_failure_questID_not_exist() public {
         // commit randomness failed due to questID not exist
         (uint8 rv, bytes32 rr, bytes32 rs) =
-                            vm.sign(signerPrivateKey, _hashCommitRandomness(0, questRevealTimestamp, questRate));
+            vm.sign(signerPrivateKey, _hashCommitRandomness(0, questRevealTimestamp, questRate));
         bytes memory randomnessSignature = abi.encodePacked(rr, rs, rv);
         vm.expectRevert(abi.encodeWithSelector(GGIRaffle.QuestNotExists.selector));
         raffle.commitRandomness(0, questRevealTimestamp, questRate, randomnessSignature);
@@ -260,7 +258,7 @@ contract GGRaffleTest is Test {
             uint256 verifyID = uint256(i) + 1;
             // generate signature
             (uint8 v, bytes32 r, bytes32 s) =
-                                vm.sign(signerPrivateKey, _hashParticipate(questID, newUser, verifyID, expiredAt));
+                vm.sign(signerPrivateKey, _hashParticipate(questID, newUser, verifyID, expiredAt));
             bytes memory signature = abi.encodePacked(r, s, v);
             // participate
             raffle.participate(questID, newUser, verifyID, expiredAt, signature);
@@ -268,7 +266,7 @@ contract GGRaffleTest is Test {
 
         // commit randomness failed due to rate invalid
         (uint8 rv, bytes32 rr, bytes32 rs) =
-                            vm.sign(signerPrivateKey, _hashCommitRandomness(0, questRevealTimestamp, 100));
+            vm.sign(signerPrivateKey, _hashCommitRandomness(0, questRevealTimestamp, 100));
         bytes memory randomnessSignature = abi.encodePacked(rr, rs, rv);
         vm.expectRevert(abi.encodeWithSelector(GGIRaffle.InvalidRate.selector));
         raffle.commitRandomness(questID, questRevealTimestamp, 100, randomnessSignature);
@@ -451,7 +449,8 @@ contract GGRaffleTest is Test {
     function _hashCommitRandomness(uint256 _questID, uint256 _timestamp, uint8 _rate) private view returns (bytes32) {
         return _hashTypedDataV4(
             keccak256(
-                abi.encode(keccak256("CommitRandomness(uint256 questID,uint256 timestamp,uint8 rate)"),
+                abi.encode(
+                    keccak256("CommitRandomness(uint256 questID,uint256 timestamp,uint8 rate)"),
                     _questID,
                     _timestamp,
                     _rate

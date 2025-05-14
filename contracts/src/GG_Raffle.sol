@@ -249,7 +249,7 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
     /// @notice Commits the randomness for the quest.
     /// @param _questID The quest ID.
     /// @param _signature The signature.
-    function commitRandomness(uint256 _questID, uint256 _timestamp, uint8 _rate, bytes calldata _signature) public {
+    function commitRandomness(uint256 _questID, uint64 _timestamp, uint8 _rate, bytes calldata _signature) public {
         GGRaffleQuest storage quest = quests[_questID];
 
         if (quest.questID == 0) {
@@ -391,10 +391,11 @@ contract GGRaffle is GGIRaffle, Ownable2Step, Pausable, EIP712 {
         );
     }
 
-    function _hashCommitRandomness(uint256 _questID, uint256 _timestamp, uint8 _rate) private view returns (bytes32) {
+    function _hashCommitRandomness(uint256 _questID, uint64 _timestamp, uint8 _rate) private view returns (bytes32) {
         return _hashTypedDataV4(
             keccak256(
-                abi.encode(keccak256("CommitRandomness(uint256 questID,uint256 timestamp,uint8 rate)"),
+                abi.encode(
+                    keccak256("CommitRandomness(uint256 questID,uint64 timestamp,uint8 rate)"),
                     _questID,
                     _timestamp,
                     _rate
