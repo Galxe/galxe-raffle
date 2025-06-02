@@ -7,9 +7,9 @@ version = "0.0.1"
 edition = "2021"
 
 [workspace.dependencies]
-sp1-sdk = "4.0.1"
-sp1-zkvm = "4.0.1"
-sp1-helper = "4.0.1"
+sp1-sdk = "5.0.1"
+sp1-zkvm = "5.0.0"
+sp1-helper = "5.0.0"
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 clap = { version = "4.5", features = ["derive", "env"] }
