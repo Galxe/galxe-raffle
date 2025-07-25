@@ -22,7 +22,7 @@ contract GGRaffleScript is BaseScript {
         console.log("DrandOracle:", drandOracle);
 
         GGRaffle raffle = new GGRaffle{salt: CREATE2_SALT}(owner, signer, verifier, vkey, drandOracle);
-        console.log("Raffle deployed at:", address(raffle));
+        console.log("GGRaffle deployed at:", address(raffle));
 
         // Write address
         writeAddress("RAFFLE", address(raffle));
