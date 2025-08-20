@@ -53,7 +53,7 @@ cd script
 cargo run --release --bin evm -- --system plonk
 ```
 
-this will generate a PLONK proof. If you want to generate a Groth16 proof, run the following command:
+This will generate a PLONK proof. If you want to generate a Groth16 proof, run the following command:
 
 ```sh
 cargo run --release --bin evm -- --system groth16
