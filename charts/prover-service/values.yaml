@@ -7,17 +7,17 @@ image:
 
 resources:
   limits:
-    cpu: 100m
-    memory: 128Mi
+    cpu: 500m
+    memory: 2Gi
   requests:
     cpu: 100m
     memory: 128Mi
 
-useExistingSecrets: false
-existingSecretName: ""
-
+useExistingSecrets: true
+existingSecretName: "galxe-raffle-prover-service"
 # Only used if useExistingSecrets is false
 secrets:
   privateKey: ""
 
-configMap: {}
+configMap:
+  RUST_BACKTRACE: full
