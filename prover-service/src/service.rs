@@ -112,7 +112,7 @@ impl ProverService for ProverServiceImpl {
             // Wait for the proof with timeout
             let proof = self
                 .prover
-                .wait_proof(proof_id, Some(Duration::from_secs(self.timeout_secs)))
+                .wait_proof(proof_id, Some(Duration::from_secs(self.timeout_secs)), Some(Duration::from_secs(self.timeout_secs)))
                 .await
                 .map_err(|e| Status::internal(e.to_string()))?;
 
