@@ -35,7 +35,7 @@ struct Args {
     /// RPC URL for the prover network
     #[arg(
         long,
-        default_value = "https://rpc.production.succinct.xyz",
+        default_value = "https://rpc.mainnet.succinct.xyz",
         env = "RPC_URL"
     )]
     rpc_url: String,

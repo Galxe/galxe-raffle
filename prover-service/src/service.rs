@@ -2,6 +2,7 @@ use alloy_sol_types::sol;
 use alloy_sol_types::SolType;
 use prometheus::{register_histogram_vec, register_int_counter_vec, HistogramVec, IntCounterVec};
 use sp1_sdk::network::prover::NetworkProver;
+use sp1_sdk::network::FulfillmentStrategy;
 use sp1_sdk::Prover;
 use sp1_sdk::SP1ProofMode;
 use sp1_sdk::SP1ProvingKey;
@@ -99,9 +100,13 @@ impl ProverService for ProverServiceImpl {
             let proof_id = self
                 .prover
                 .prove(&self.pk, &stdin)
+                .strategy(FulfillmentStrategy::Auction)
+                .skip_simulation(false)
+                .cycle_limit(140_000)
+                .gas_limit(1_400_000)
                 .mode(proof_mode)
                 .request()
-                .unwrap();
+                .map_err(|e| Status::internal(e.to_string()))?;
 
             log::info!(
                 "Proof requested. ID: {}, System: {}",
