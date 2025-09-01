@@ -31,4 +31,5 @@ message ProveResponse {
   uint32 num_winners = 5;
   string randomness = 6;
   string merkle_root = 7;
+  string balance = 8;
 }
