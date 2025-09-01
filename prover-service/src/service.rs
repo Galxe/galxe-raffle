@@ -139,7 +139,13 @@ impl ProverService for ProverServiceImpl {
                 hex::encode(merkle_root.as_slice())
             );
 
-            let balance = self.prover.get_balance().await.map_err(|e| Status::internal(e.to_string()))?;
+            let balance = match self.prover.get_balance().await {
+                Ok(balance) => balance,
+                Err(e) => {
+                    log::error!("Failed to get balance: {}", e);
+                    Default::default() // Returns 0 for numeric types
+                }
+            };
 
             Ok(Response::new(ProveResponse {
                 proof_id: proof_id.to_string(),
