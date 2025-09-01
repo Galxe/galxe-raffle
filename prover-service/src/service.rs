@@ -7,6 +7,7 @@ use sp1_sdk::Prover;
 use sp1_sdk::SP1ProofMode;
 use sp1_sdk::SP1ProvingKey;
 use sp1_sdk::SP1Stdin;
+
 use std::time::Duration;
 use tonic::{Request, Response, Status};
 
@@ -138,6 +139,14 @@ impl ProverService for ProverServiceImpl {
                 hex::encode(merkle_root.as_slice())
             );
 
+            let balance = match self.prover.get_balance().await {
+                Ok(balance) => balance,
+                Err(e) => {
+                    log::error!("Failed to get balance: {}", e);
+                    Default::default() // Returns 0 for numeric types
+                }
+            };
+
             Ok(Response::new(ProveResponse {
                 proof_id: proof_id.to_string(),
                 public_values: format!("0x{}", hex::encode(bytes)),
@@ -146,6 +155,7 @@ impl ProverService for ProverServiceImpl {
                 num_winners,
                 randomness: format!("0x{}", hex::encode(&randomness.as_slice())),
                 merkle_root: format!("0x{}", hex::encode(merkle_root.as_slice())),
+                balance: balance.to_string(),
             }))
         }
         .await;
