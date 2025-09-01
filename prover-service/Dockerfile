@@ -16,7 +16,7 @@ COPY . .
 RUN cargo build --release
 
 # Runtime stage
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 
 RUN apt-get update && apt-get install -y libssl3 ca-certificates
 COPY --from=builder /usr/src/app/target/release/server /usr/local/bin/server
