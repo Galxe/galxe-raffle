@@ -3,11 +3,11 @@ pragma solidity ^0.8.24;
 
 import "forge-std/Script.sol";
 import {BaseScript} from "../utils/Base.s.sol";
-import {Raffle} from "../../src/Raffle.sol";
+import {GGRaffle} from "../../src/GG_Raffle.sol";
 
-contract RaffleScript is BaseScript {
+contract GGRaffleScript is BaseScript {
     function run() external chain broadcaster {
-        //bytes32 CREATE2_SALT = vm.envBytes32("CREATE2_SALT");
+        bytes32 CREATE2_SALT = vm.envBytes32("CREATE2_SALT");
         address owner = vm.envAddress("OWNER");
         address signer = vm.envAddress("SIGNER");
         address verifier = vm.envAddress("VERIFIER");
@@ -21,9 +21,8 @@ contract RaffleScript is BaseScript {
         console.logBytes32(vkey);
         console.log("DrandOracle:", drandOracle);
 
-        // Raffle raffle = new Raffle{salt: CREATE2_SALT}(owner, signer, verifier, vkey, drandOracle);
-        Raffle raffle = new Raffle(owner, signer, verifier, vkey, drandOracle);
-        console.log("Raffle deployed at:", address(raffle));
+        GGRaffle raffle = new GGRaffle{salt: CREATE2_SALT}(owner, signer, verifier, vkey, drandOracle);
+        console.log("GGRaffle deployed at:", address(raffle));
 
         // Write address
         writeAddress("RAFFLE", address(raffle));
