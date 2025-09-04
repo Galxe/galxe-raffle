@@ -103,8 +103,6 @@ impl ProverService for ProverServiceImpl {
                 .prove(&self.pk, &stdin)
                 .strategy(FulfillmentStrategy::Auction)
                 .skip_simulation(false)
-                .cycle_limit(100_000_000)
-                .gas_limit(4_000_000)
                 .mode(proof_mode)
                 .request()
                 .map_err(|e| Status::internal(e.to_string()))?;
