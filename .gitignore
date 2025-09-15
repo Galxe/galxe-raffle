@@ -29,3 +29,4 @@ pgo-data.profdata
 
 # Dotenv file
 .env
+.idea/
