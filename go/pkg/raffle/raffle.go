@@ -51,7 +51,7 @@ func selectWinners(numParticipants, numWinners uint32, randomness uint64) []uint
 	seed := randomness
 
 	for len(selected) < selectCount {
-		newNumber := uint32(seed % uint64(n))
+		newNumber := uint32(seed%uint64(n)) + 1 // Generate 1 to n
 		if !usedNumbers[newNumber] {
 			usedNumbers[newNumber] = true
 			selected = append(selected, newNumber)
@@ -61,7 +61,7 @@ func selectWinners(numParticipants, numWinners uint32, randomness uint64) []uint
 
 	if invert {
 		result := make([]uint32, 0, n-selectCount)
-		for i := uint32(0); i < numParticipants; i++ {
+		for i := uint32(1); i <= numParticipants; i++ {
 			if !usedNumbers[i] {
 				result = append(result, i)
 			}
