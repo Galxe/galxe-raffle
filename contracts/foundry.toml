@@ -10,7 +10,6 @@ fs_permissions = [
 remappings = [
     "@openzeppelin/=lib/openzeppelin-contracts/",
     "@sp1-contracts/=lib/sp1-contracts/contracts/src/",
-    "@drand-oracle/=lib/drand-oracle/contracts/src/",
 ]
 
 [rpc_endpoints]

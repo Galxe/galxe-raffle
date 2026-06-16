@@ -29,17 +29,15 @@ var (
 	_ = abi.ConvertType
 )
 
-// IDrandOracleRandom is an auto generated low-level Go binding around an user-defined struct.
-type IDrandOracleRandom struct {
-	Round      uint64
-	Timestamp  uint64
-	Randomness [32]byte
-	Signature  []byte
+// IRaffleRandom is an auto generated low-level Go binding around an user-defined struct.
+type IRaffleRandom struct {
+	Randomness  [32]byte
+	BlockNumber uint64
 }
 
 // RaffleMetaData contains all meta data concerning the Raffle contract.
 var RaffleMetaData = &bind.MetaData{
-	ABI: "[{\"type\":\"constructor\",\"inputs\":[{\"name\":\"_initialOwner\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"_signer\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"_verifier\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"_vkey\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"_drandOracle\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"acceptOwnership\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"commitRandomness\",\"inputs\":[{\"name\":\"_questID\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"_timestamp\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"_signature\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"drandOracle\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"eip712Domain\",\"inputs\":[],\"outputs\":[{\"name\":\"fields\",\"type\":\"bytes1\",\"internalType\":\"bytes1\"},{\"name\":\"name\",\"type\":\"string\",\"internalType\":\"string\"},{\"name\":\"version\",\"type\":\"string\",\"internalType\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"verifyingContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"salt\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"extensions\",\"type\":\"uint256[]\",\"internalType\":\"uint256[]\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getQuest\",\"inputs\":[{\"name\":\"_questID\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"_active\",\"type\":\"bool\",\"internalType\":\"bool\"},{\"name\":\"random\",\"type\":\"tuple\",\"internalType\":\"structIDrandOracle.Random\",\"components\":[{\"name\":\"round\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"timestamp\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"randomness\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"signature\",\"type\":\"bytes\",\"internalType\":\"bytes\"}]},{\"name\":\"_participantCount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_winnerCount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_merkleRoot\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"hasParticipated\",\"inputs\":[{\"name\":\"_verifyID\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"owner\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"participate\",\"inputs\":[{\"name\":\"_questID\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"_user\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_verifyID\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"_signature\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"pause\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"paused\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"pendingOwner\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"renounceOwnership\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"reveal\",\"inputs\":[{\"name\":\"_questID\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"_publicValues\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"_proofBytes\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setDrandOracle\",\"inputs\":[{\"name\":\"_drandOracle\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setSigner\",\"inputs\":[{\"name\":\"_signer\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setVerifier\",\"inputs\":[{\"name\":\"_verifier\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setVkey\",\"inputs\":[{\"name\":\"_vkey\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"signer\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"transferOwnership\",\"inputs\":[{\"name\":\"newOwner\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"unpause\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"verifier\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"vkey\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"event\",\"name\":\"CommitRandomness\",\"inputs\":[{\"name\":\"questID\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"roundID\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"randomness\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"DrandOracleUpdated\",\"inputs\":[{\"name\":\"drandOracle\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"EIP712DomainChanged\",\"inputs\":[],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OwnershipTransferStarted\",\"inputs\":[{\"name\":\"previousOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"newOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OwnershipTransferred\",\"inputs\":[{\"name\":\"previousOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"newOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Participate\",\"inputs\":[{\"name\":\"participantID\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"questID\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"user\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"verifyID\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Paused\",\"inputs\":[{\"name\":\"account\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Reveal\",\"inputs\":[{\"name\":\"questID\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"participantCount\",\"type\":\"uint32\",\"indexed\":false,\"internalType\":\"uint32\"},{\"name\":\"winnerCount\",\"type\":\"uint32\",\"indexed\":false,\"internalType\":\"uint32\"},{\"name\":\"randomness\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"},{\"name\":\"merkleRoot\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"SignerUpdated\",\"inputs\":[{\"name\":\"signer\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Unpaused\",\"inputs\":[{\"name\":\"account\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"VerifierUpdated\",\"inputs\":[{\"name\":\"verifier\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"VkeyUpdated\",\"inputs\":[{\"name\":\"vkey\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"ECDSAInvalidSignature\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"ECDSAInvalidSignatureLength\",\"inputs\":[{\"name\":\"length\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]},{\"type\":\"error\",\"name\":\"ECDSAInvalidSignatureS\",\"inputs\":[{\"name\":\"s\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}]},{\"type\":\"error\",\"name\":\"EnforcedPause\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"ExpectedPause\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"IncorrectProof\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidAddress\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidQuestID\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidRandomness\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidShortString\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidSignature\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"OwnableInvalidOwner\",\"inputs\":[{\"name\":\"owner\",\"type\":\"address\",\"internalType\":\"address\"}]},{\"type\":\"error\",\"name\":\"OwnableUnauthorizedAccount\",\"inputs\":[{\"name\":\"account\",\"type\":\"address\",\"internalType\":\"address\"}]},{\"type\":\"error\",\"name\":\"QuestAlreadyRevealed\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"QuestNotActive\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"QuestNotExists\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"QuestRandomnessAlreadyCommitted\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"QuestStillActive\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"StringTooLong\",\"inputs\":[{\"name\":\"str\",\"type\":\"string\",\"internalType\":\"string\"}]},{\"type\":\"error\",\"name\":\"VerifyIdAlreadyUsed\",\"inputs\":[{\"name\":\"verifyId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]}]",
+	ABI: "[{\"type\":\"constructor\",\"inputs\":[{\"name\":\"_initialOwner\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"_signer\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"_verifier\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"_vkey\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"acceptOwnership\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"commitRandomness\",\"inputs\":[{\"name\":\"_questID\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"eip712Domain\",\"inputs\":[],\"outputs\":[{\"name\":\"fields\",\"type\":\"bytes1\",\"internalType\":\"bytes1\"},{\"name\":\"name\",\"type\":\"string\",\"internalType\":\"string\"},{\"name\":\"version\",\"type\":\"string\",\"internalType\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"verifyingContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"salt\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"extensions\",\"type\":\"uint256[]\",\"internalType\":\"uint256[]\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getQuest\",\"inputs\":[{\"name\":\"_questID\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"_active\",\"type\":\"bool\",\"internalType\":\"bool\"},{\"name\":\"random\",\"type\":\"tuple\",\"internalType\":\"structIRaffle.Random\",\"components\":[{\"name\":\"randomness\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"blockNumber\",\"type\":\"uint64\",\"internalType\":\"uint64\"}]},{\"name\":\"_participantCount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_winnerCount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_merkleRoot\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"hasParticipated\",\"inputs\":[{\"name\":\"_verifyID\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"owner\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"participate\",\"inputs\":[{\"name\":\"_questID\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"_user\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_verifyID\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"_signature\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"pause\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"paused\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"pendingOwner\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"renounceOwnership\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"reveal\",\"inputs\":[{\"name\":\"_questID\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"_publicValues\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"_proofBytes\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setSigner\",\"inputs\":[{\"name\":\"_signer\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setVerifier\",\"inputs\":[{\"name\":\"_verifier\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setVkey\",\"inputs\":[{\"name\":\"_vkey\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"signer\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"transferOwnership\",\"inputs\":[{\"name\":\"newOwner\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"unpause\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"verifier\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"vkey\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"event\",\"name\":\"CommitRandomness\",\"inputs\":[{\"name\":\"questID\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"blockNumber\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"randomness\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"EIP712DomainChanged\",\"inputs\":[],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OwnershipTransferStarted\",\"inputs\":[{\"name\":\"previousOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"newOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OwnershipTransferred\",\"inputs\":[{\"name\":\"previousOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"newOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Participate\",\"inputs\":[{\"name\":\"participantID\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"questID\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"user\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"verifyID\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Paused\",\"inputs\":[{\"name\":\"account\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Reveal\",\"inputs\":[{\"name\":\"questID\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"participantCount\",\"type\":\"uint32\",\"indexed\":false,\"internalType\":\"uint32\"},{\"name\":\"winnerCount\",\"type\":\"uint32\",\"indexed\":false,\"internalType\":\"uint32\"},{\"name\":\"randomness\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"},{\"name\":\"merkleRoot\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"SignerUpdated\",\"inputs\":[{\"name\":\"signer\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Unpaused\",\"inputs\":[{\"name\":\"account\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"VerifierUpdated\",\"inputs\":[{\"name\":\"verifier\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"VkeyUpdated\",\"inputs\":[{\"name\":\"vkey\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"ECDSAInvalidSignature\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"ECDSAInvalidSignatureLength\",\"inputs\":[{\"name\":\"length\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]},{\"type\":\"error\",\"name\":\"ECDSAInvalidSignatureS\",\"inputs\":[{\"name\":\"s\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}]},{\"type\":\"error\",\"name\":\"EnforcedPause\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"ExpectedPause\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"IncorrectProof\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidAddress\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidQuestID\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidRandomness\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidShortString\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidSignature\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"OwnableInvalidOwner\",\"inputs\":[{\"name\":\"owner\",\"type\":\"address\",\"internalType\":\"address\"}]},{\"type\":\"error\",\"name\":\"OwnableUnauthorizedAccount\",\"inputs\":[{\"name\":\"account\",\"type\":\"address\",\"internalType\":\"address\"}]},{\"type\":\"error\",\"name\":\"QuestAlreadyRevealed\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"QuestNotActive\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"QuestNotExists\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"QuestRandomnessAlreadyCommitted\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"QuestStillActive\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"StringTooLong\",\"inputs\":[{\"name\":\"str\",\"type\":\"string\",\"internalType\":\"string\"}]},{\"type\":\"error\",\"name\":\"Unauthorized\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"VerifyIdAlreadyUsed\",\"inputs\":[{\"name\":\"verifyId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]}]",
 }
 
 // RaffleABI is the input ABI used to generate the binding from.
@@ -188,37 +186,6 @@ func (_Raffle *RaffleTransactorRaw) Transact(opts *bind.TransactOpts, method str
 	return _Raffle.Contract.contract.Transact(opts, method, params...)
 }
 
-// DrandOracle is a free data retrieval call binding the contract method 0x09c21de0.
-//
-// Solidity: function drandOracle() view returns(address)
-func (_Raffle *RaffleCaller) DrandOracle(opts *bind.CallOpts) (common.Address, error) {
-	var out []interface{}
-	err := _Raffle.contract.Call(opts, &out, "drandOracle")
-
-	if err != nil {
-		return *new(common.Address), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
-
-	return out0, err
-
-}
-
-// DrandOracle is a free data retrieval call binding the contract method 0x09c21de0.
-//
-// Solidity: function drandOracle() view returns(address)
-func (_Raffle *RaffleSession) DrandOracle() (common.Address, error) {
-	return _Raffle.Contract.DrandOracle(&_Raffle.CallOpts)
-}
-
-// DrandOracle is a free data retrieval call binding the contract method 0x09c21de0.
-//
-// Solidity: function drandOracle() view returns(address)
-func (_Raffle *RaffleCallerSession) DrandOracle() (common.Address, error) {
-	return _Raffle.Contract.DrandOracle(&_Raffle.CallOpts)
-}
-
 // Eip712Domain is a free data retrieval call binding the contract method 0x84b0196e.
 //
 // Solidity: function eip712Domain() view returns(bytes1 fields, string name, string version, uint256 chainId, address verifyingContract, bytes32 salt, uint256[] extensions)
@@ -291,10 +258,10 @@ func (_Raffle *RaffleCallerSession) Eip712Domain() (struct {
 
 // GetQuest is a free data retrieval call binding the contract method 0x49f86f34.
 //
-// Solidity: function getQuest(uint256 _questID) view returns(bool _active, (uint64,uint64,bytes32,bytes) random, uint256 _participantCount, uint256 _winnerCount, bytes32 _merkleRoot)
+// Solidity: function getQuest(uint256 _questID) view returns(bool _active, (bytes32,uint64) random, uint256 _participantCount, uint256 _winnerCount, bytes32 _merkleRoot)
 func (_Raffle *RaffleCaller) GetQuest(opts *bind.CallOpts, _questID *big.Int) (struct {
 	Active           bool
-	Random           IDrandOracleRandom
+	Random           IRaffleRandom
 	ParticipantCount *big.Int
 	WinnerCount      *big.Int
 	MerkleRoot       [32]byte
@@ -304,7 +271,7 @@ func (_Raffle *RaffleCaller) GetQuest(opts *bind.CallOpts, _questID *big.Int) (s
 
 	outstruct := new(struct {
 		Active           bool
-		Random           IDrandOracleRandom
+		Random           IRaffleRandom
 		ParticipantCount *big.Int
 		WinnerCount      *big.Int
 		MerkleRoot       [32]byte
@@ -314,7 +281,7 @@ func (_Raffle *RaffleCaller) GetQuest(opts *bind.CallOpts, _questID *big.Int) (s
 	}
 
 	outstruct.Active = *abi.ConvertType(out[0], new(bool)).(*bool)
-	outstruct.Random = *abi.ConvertType(out[1], new(IDrandOracleRandom)).(*IDrandOracleRandom)
+	outstruct.Random = *abi.ConvertType(out[1], new(IRaffleRandom)).(*IRaffleRandom)
 	outstruct.ParticipantCount = *abi.ConvertType(out[2], new(*big.Int)).(**big.Int)
 	outstruct.WinnerCount = *abi.ConvertType(out[3], new(*big.Int)).(**big.Int)
 	outstruct.MerkleRoot = *abi.ConvertType(out[4], new([32]byte)).(*[32]byte)
@@ -325,10 +292,10 @@ func (_Raffle *RaffleCaller) GetQuest(opts *bind.CallOpts, _questID *big.Int) (s
 
 // GetQuest is a free data retrieval call binding the contract method 0x49f86f34.
 //
-// Solidity: function getQuest(uint256 _questID) view returns(bool _active, (uint64,uint64,bytes32,bytes) random, uint256 _participantCount, uint256 _winnerCount, bytes32 _merkleRoot)
+// Solidity: function getQuest(uint256 _questID) view returns(bool _active, (bytes32,uint64) random, uint256 _participantCount, uint256 _winnerCount, bytes32 _merkleRoot)
 func (_Raffle *RaffleSession) GetQuest(_questID *big.Int) (struct {
 	Active           bool
-	Random           IDrandOracleRandom
+	Random           IRaffleRandom
 	ParticipantCount *big.Int
 	WinnerCount      *big.Int
 	MerkleRoot       [32]byte
@@ -338,10 +305,10 @@ func (_Raffle *RaffleSession) GetQuest(_questID *big.Int) (struct {
 
 // GetQuest is a free data retrieval call binding the contract method 0x49f86f34.
 //
-// Solidity: function getQuest(uint256 _questID) view returns(bool _active, (uint64,uint64,bytes32,bytes) random, uint256 _participantCount, uint256 _winnerCount, bytes32 _merkleRoot)
+// Solidity: function getQuest(uint256 _questID) view returns(bool _active, (bytes32,uint64) random, uint256 _participantCount, uint256 _winnerCount, bytes32 _merkleRoot)
 func (_Raffle *RaffleCallerSession) GetQuest(_questID *big.Int) (struct {
 	Active           bool
-	Random           IDrandOracleRandom
+	Random           IRaffleRandom
 	ParticipantCount *big.Int
 	WinnerCount      *big.Int
 	MerkleRoot       [32]byte
@@ -587,25 +554,25 @@ func (_Raffle *RaffleTransactorSession) AcceptOwnership() (*types.Transaction, e
 	return _Raffle.Contract.AcceptOwnership(&_Raffle.TransactOpts)
 }
 
-// CommitRandomness is a paid mutator transaction binding the contract method 0x88c84146.
+// CommitRandomness is a paid mutator transaction binding the contract method 0xc6d58251.
 //
-// Solidity: function commitRandomness(uint64 _questID, uint64 _timestamp, bytes _signature) returns()
-func (_Raffle *RaffleTransactor) CommitRandomness(opts *bind.TransactOpts, _questID uint64, _timestamp uint64, _signature []byte) (*types.Transaction, error) {
-	return _Raffle.contract.Transact(opts, "commitRandomness", _questID, _timestamp, _signature)
+// Solidity: function commitRandomness(uint64 _questID) returns()
+func (_Raffle *RaffleTransactor) CommitRandomness(opts *bind.TransactOpts, _questID uint64) (*types.Transaction, error) {
+	return _Raffle.contract.Transact(opts, "commitRandomness", _questID)
 }
 
-// CommitRandomness is a paid mutator transaction binding the contract method 0x88c84146.
+// CommitRandomness is a paid mutator transaction binding the contract method 0xc6d58251.
 //
-// Solidity: function commitRandomness(uint64 _questID, uint64 _timestamp, bytes _signature) returns()
-func (_Raffle *RaffleSession) CommitRandomness(_questID uint64, _timestamp uint64, _signature []byte) (*types.Transaction, error) {
-	return _Raffle.Contract.CommitRandomness(&_Raffle.TransactOpts, _questID, _timestamp, _signature)
+// Solidity: function commitRandomness(uint64 _questID) returns()
+func (_Raffle *RaffleSession) CommitRandomness(_questID uint64) (*types.Transaction, error) {
+	return _Raffle.Contract.CommitRandomness(&_Raffle.TransactOpts, _questID)
 }
 
-// CommitRandomness is a paid mutator transaction binding the contract method 0x88c84146.
+// CommitRandomness is a paid mutator transaction binding the contract method 0xc6d58251.
 //
-// Solidity: function commitRandomness(uint64 _questID, uint64 _timestamp, bytes _signature) returns()
-func (_Raffle *RaffleTransactorSession) CommitRandomness(_questID uint64, _timestamp uint64, _signature []byte) (*types.Transaction, error) {
-	return _Raffle.Contract.CommitRandomness(&_Raffle.TransactOpts, _questID, _timestamp, _signature)
+// Solidity: function commitRandomness(uint64 _questID) returns()
+func (_Raffle *RaffleTransactorSession) CommitRandomness(_questID uint64) (*types.Transaction, error) {
+	return _Raffle.Contract.CommitRandomness(&_Raffle.TransactOpts, _questID)
 }
 
 // Participate is a paid mutator transaction binding the contract method 0xc8cbf5e3.
@@ -690,27 +657,6 @@ func (_Raffle *RaffleSession) Reveal(_questID uint64, _publicValues []byte, _pro
 // Solidity: function reveal(uint64 _questID, bytes _publicValues, bytes _proofBytes) returns()
 func (_Raffle *RaffleTransactorSession) Reveal(_questID uint64, _publicValues []byte, _proofBytes []byte) (*types.Transaction, error) {
 	return _Raffle.Contract.Reveal(&_Raffle.TransactOpts, _questID, _publicValues, _proofBytes)
-}
-
-// SetDrandOracle is a paid mutator transaction binding the contract method 0x2ce7db68.
-//
-// Solidity: function setDrandOracle(address _drandOracle) returns()
-func (_Raffle *RaffleTransactor) SetDrandOracle(opts *bind.TransactOpts, _drandOracle common.Address) (*types.Transaction, error) {
-	return _Raffle.contract.Transact(opts, "setDrandOracle", _drandOracle)
-}
-
-// SetDrandOracle is a paid mutator transaction binding the contract method 0x2ce7db68.
-//
-// Solidity: function setDrandOracle(address _drandOracle) returns()
-func (_Raffle *RaffleSession) SetDrandOracle(_drandOracle common.Address) (*types.Transaction, error) {
-	return _Raffle.Contract.SetDrandOracle(&_Raffle.TransactOpts, _drandOracle)
-}
-
-// SetDrandOracle is a paid mutator transaction binding the contract method 0x2ce7db68.
-//
-// Solidity: function setDrandOracle(address _drandOracle) returns()
-func (_Raffle *RaffleTransactorSession) SetDrandOracle(_drandOracle common.Address) (*types.Transaction, error) {
-	return _Raffle.Contract.SetDrandOracle(&_Raffle.TransactOpts, _drandOracle)
 }
 
 // SetSigner is a paid mutator transaction binding the contract method 0x6c19e783.
@@ -887,15 +833,15 @@ func (it *RaffleCommitRandomnessIterator) Close() error {
 
 // RaffleCommitRandomness represents a CommitRandomness event raised by the Raffle contract.
 type RaffleCommitRandomness struct {
-	QuestID    uint64
-	RoundID    uint64
-	Randomness [32]byte
-	Raw        types.Log // Blockchain specific contextual infos
+	QuestID     uint64
+	BlockNumber uint64
+	Randomness  [32]byte
+	Raw         types.Log // Blockchain specific contextual infos
 }
 
 // FilterCommitRandomness is a free log retrieval operation binding the contract event 0x1dbc60586a945ceca44922ef613ca23dc725b0fd96c644af43119d1876eca608.
 //
-// Solidity: event CommitRandomness(uint64 questID, uint64 roundID, bytes32 randomness)
+// Solidity: event CommitRandomness(uint64 questID, uint64 blockNumber, bytes32 randomness)
 func (_Raffle *RaffleFilterer) FilterCommitRandomness(opts *bind.FilterOpts) (*RaffleCommitRandomnessIterator, error) {
 
 	logs, sub, err := _Raffle.contract.FilterLogs(opts, "CommitRandomness")
@@ -907,7 +853,7 @@ func (_Raffle *RaffleFilterer) FilterCommitRandomness(opts *bind.FilterOpts) (*R
 
 // WatchCommitRandomness is a free log subscription operation binding the contract event 0x1dbc60586a945ceca44922ef613ca23dc725b0fd96c644af43119d1876eca608.
 //
-// Solidity: event CommitRandomness(uint64 questID, uint64 roundID, bytes32 randomness)
+// Solidity: event CommitRandomness(uint64 questID, uint64 blockNumber, bytes32 randomness)
 func (_Raffle *RaffleFilterer) WatchCommitRandomness(opts *bind.WatchOpts, sink chan<- *RaffleCommitRandomness) (event.Subscription, error) {
 
 	logs, sub, err := _Raffle.contract.WatchLogs(opts, "CommitRandomness")
@@ -944,144 +890,10 @@ func (_Raffle *RaffleFilterer) WatchCommitRandomness(opts *bind.WatchOpts, sink 
 
 // ParseCommitRandomness is a log parse operation binding the contract event 0x1dbc60586a945ceca44922ef613ca23dc725b0fd96c644af43119d1876eca608.
 //
-// Solidity: event CommitRandomness(uint64 questID, uint64 roundID, bytes32 randomness)
+// Solidity: event CommitRandomness(uint64 questID, uint64 blockNumber, bytes32 randomness)
 func (_Raffle *RaffleFilterer) ParseCommitRandomness(log types.Log) (*RaffleCommitRandomness, error) {
 	event := new(RaffleCommitRandomness)
 	if err := _Raffle.contract.UnpackLog(event, "CommitRandomness", log); err != nil {
-		return nil, err
-	}
-	event.Raw = log
-	return event, nil
-}
-
-// RaffleDrandOracleUpdatedIterator is returned from FilterDrandOracleUpdated and is used to iterate over the raw logs and unpacked data for DrandOracleUpdated events raised by the Raffle contract.
-type RaffleDrandOracleUpdatedIterator struct {
-	Event *RaffleDrandOracleUpdated // Event containing the contract specifics and raw log
-
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
-
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
-
-// Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing error, false is
-// returned and Error() can be queried for the exact failure.
-func (it *RaffleDrandOracleUpdatedIterator) Next() bool {
-	// If the iterator failed, stop iterating
-	if it.fail != nil {
-		return false
-	}
-	// If the iterator completed, deliver directly whatever's available
-	if it.done {
-		select {
-		case log := <-it.logs:
-			it.Event = new(RaffleDrandOracleUpdated)
-			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-				it.fail = err
-				return false
-			}
-			it.Event.Raw = log
-			return true
-
-		default:
-			return false
-		}
-	}
-	// Iterator still in progress, wait for either a data or an error event
-	select {
-	case log := <-it.logs:
-		it.Event = new(RaffleDrandOracleUpdated)
-		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-			it.fail = err
-			return false
-		}
-		it.Event.Raw = log
-		return true
-
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
-
-// Error returns any retrieval or parsing error occurred during filtering.
-func (it *RaffleDrandOracleUpdatedIterator) Error() error {
-	return it.fail
-}
-
-// Close terminates the iteration process, releasing any pending underlying
-// resources.
-func (it *RaffleDrandOracleUpdatedIterator) Close() error {
-	it.sub.Unsubscribe()
-	return nil
-}
-
-// RaffleDrandOracleUpdated represents a DrandOracleUpdated event raised by the Raffle contract.
-type RaffleDrandOracleUpdated struct {
-	DrandOracle common.Address
-	Raw         types.Log // Blockchain specific contextual infos
-}
-
-// FilterDrandOracleUpdated is a free log retrieval operation binding the contract event 0x0bf1c7001241496ed737646ad58bc2d42d5c086ee9df98ab228601bb47110c7f.
-//
-// Solidity: event DrandOracleUpdated(address drandOracle)
-func (_Raffle *RaffleFilterer) FilterDrandOracleUpdated(opts *bind.FilterOpts) (*RaffleDrandOracleUpdatedIterator, error) {
-
-	logs, sub, err := _Raffle.contract.FilterLogs(opts, "DrandOracleUpdated")
-	if err != nil {
-		return nil, err
-	}
-	return &RaffleDrandOracleUpdatedIterator{contract: _Raffle.contract, event: "DrandOracleUpdated", logs: logs, sub: sub}, nil
-}
-
-// WatchDrandOracleUpdated is a free log subscription operation binding the contract event 0x0bf1c7001241496ed737646ad58bc2d42d5c086ee9df98ab228601bb47110c7f.
-//
-// Solidity: event DrandOracleUpdated(address drandOracle)
-func (_Raffle *RaffleFilterer) WatchDrandOracleUpdated(opts *bind.WatchOpts, sink chan<- *RaffleDrandOracleUpdated) (event.Subscription, error) {
-
-	logs, sub, err := _Raffle.contract.WatchLogs(opts, "DrandOracleUpdated")
-	if err != nil {
-		return nil, err
-	}
-	return event.NewSubscription(func(quit <-chan struct{}) error {
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case log := <-logs:
-				// New log arrived, parse the event and forward to the user
-				event := new(RaffleDrandOracleUpdated)
-				if err := _Raffle.contract.UnpackLog(event, "DrandOracleUpdated", log); err != nil {
-					return err
-				}
-				event.Raw = log
-
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
-}
-
-// ParseDrandOracleUpdated is a log parse operation binding the contract event 0x0bf1c7001241496ed737646ad58bc2d42d5c086ee9df98ab228601bb47110c7f.
-//
-// Solidity: event DrandOracleUpdated(address drandOracle)
-func (_Raffle *RaffleFilterer) ParseDrandOracleUpdated(log types.Log) (*RaffleDrandOracleUpdated, error) {
-	event := new(RaffleDrandOracleUpdated)
-	if err := _Raffle.contract.UnpackLog(event, "DrandOracleUpdated", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
