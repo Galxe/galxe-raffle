@@ -12,10 +12,17 @@ abstract contract BaseScript is Script {
 
     /// @notice Run the command with the `--broadcast` flag to send the transaction to the chain,
     /// otherwise just simulate the transaction execution.
+    /// @dev If the `PRIVATE_KEY` env var is set, it is used to sign. Otherwise the broadcast
+    /// uses the signer supplied on the CLI (e.g. `--account <name>`, `--ledger`), which lets you
+    /// deploy from a Foundry keystore account without exposing a raw private key.
     modifier broadcaster() {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        console.log("Deployer: %s", vm.addr(deployerPrivateKey));
-        vm.startBroadcast(deployerPrivateKey);
+        uint256 deployerPrivateKey = vm.envOr("PRIVATE_KEY", uint256(0));
+        if (deployerPrivateKey != 0) {
+            console.log("Deployer: %s", vm.addr(deployerPrivateKey));
+            vm.startBroadcast(deployerPrivateKey);
+        } else {
+            vm.startBroadcast();
+        }
         _;
         vm.stopBroadcast();
     }

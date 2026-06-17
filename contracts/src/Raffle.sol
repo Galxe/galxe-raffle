@@ -164,17 +164,18 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
     }
 
     /// @notice Commits the randomness for the quest using Gravity L1 native randomness.
-    /// @dev Reads `block.prevrandao`, which on Gravity is unbiasable (consensus DKG + WVUF).
-    ///      The call is restricted to the trusted signer: otherwise a participant could wrap
-    ///      it in their own contract and revert the whole transaction on a losing draw, then
-    ///      retry next block for a fresh `prevrandao` (test-and-abort). The signer is trusted
-    ///      to commit exactly once, after participation is closed, and accept the result.
+    /// @dev Reads `block.prevrandao` (unbiasable on Gravity via consensus DKG + WVUF) and gates
+    ///      the call with an off-chain signature from `signer`. Anyone may relay the signed call,
+    ///      so `signer` does not need to hold gas.
+    ///
+    ///      SECURITY (accepted trade-off): the signature authorizes the quest, not a specific
+    ///      block. Because `block.prevrandao` is fixed per block, a relayer can wrap this call in
+    ///      their own contract and revert the whole transaction on a losing draw, then retry in a
+    ///      later block for a fresh value (test-and-abort). This is intentionally accepted here in
+    ///      exchange for keeping `signer` gas-free; the operator is expected to commit promptly.
     /// @param _questID The quest ID.
-    function commitRandomness(uint64 _questID) public {
-        if (msg.sender != signer) {
-            revert IRaffle.Unauthorized();
-        }
-
+    /// @param _signature The signer's authorization over the quest ID.
+    function commitRandomness(uint64 _questID, bytes calldata _signature) public {
         RaffleQuest storage quest = quests[_questID];
 
         if (quest.questID == 0) {
@@ -187,6 +188,11 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
 
         if (quest.random.randomness != bytes32(0)) {
             revert IRaffle.QuestRandomnessAlreadyCommitted();
+        }
+
+        bool isVerified = _verify(_hashCommitRandomness(_questID), _signature);
+        if (!isVerified) {
+            revert IRaffle.InvalidSignature();
         }
 
         bytes32 randomness = bytes32(block.prevrandao);
@@ -266,5 +272,9 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
                 )
             )
         );
+    }
+
+    function _hashCommitRandomness(uint64 _questID) private view returns (bytes32) {
+        return _hashTypedDataV4(keccak256(abi.encode(keccak256("CommitRandomness(uint64 questID)"), _questID)));
     }
 }

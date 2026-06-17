@@ -90,10 +90,9 @@ contract RaffleTest is Test {
         _participateAll(fixture.numParticipants);
 
         // commit randomness: set the native randomness for this block to the fixture value,
-        // then commit it as the trusted signer.
+        // then commit it with a signer-authorized (off-chain) signature.
         vm.prevrandao(fixture.randomness);
-        vm.prank(signer);
-        raffle.commitRandomness(questID);
+        raffle.commitRandomness(questID, _commitSig(questID));
 
         // reveal
         raffle.reveal(questID, fixture.publicValues, fixture.proof);
@@ -109,14 +108,19 @@ contract RaffleTest is Test {
         assertEq(merkleRoot, fixture.merkleRoot);
     }
 
-    /// @notice Tests that only the signer can commit randomness (prevents test-and-abort).
-    function test_commit_randomness_failure_not_signer() public {
+    /// @notice Tests that commit randomness fails with a signature not produced by the signer.
+    function test_commit_randomness_failure_invalid_signature() public {
         SP1ProofFixtureJson memory fixture = loadFixture();
         _participateAll(fixture.numParticipants);
 
+        // sign with a non-signer key
+        uint256 attackerKey = 0xBAD;
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(attackerKey, _hashCommitRandomness(questID));
+        bytes memory badSig = abi.encodePacked(r, s, v);
+
         vm.prevrandao(fixture.randomness);
-        vm.expectRevert(abi.encodeWithSelector(IRaffle.Unauthorized.selector));
-        raffle.commitRandomness(questID);
+        vm.expectRevert(abi.encodeWithSelector(IRaffle.InvalidSignature.selector));
+        raffle.commitRandomness(questID, badSig);
     }
 
     /// @notice Tests that commit randomness fails when native randomness is unavailable (zero).
@@ -125,9 +129,8 @@ contract RaffleTest is Test {
         _participateAll(fixture.numParticipants);
 
         vm.prevrandao(bytes32(0));
-        vm.prank(signer);
         vm.expectRevert(abi.encodeWithSelector(IRaffle.InvalidRandomness.selector));
-        raffle.commitRandomness(questID);
+        raffle.commitRandomness(questID, _commitSig(questID));
     }
 
     /// @notice Tests that the commit randomness fails if a randomness commit has already been made - quest is already not active
@@ -139,13 +142,11 @@ contract RaffleTest is Test {
 
         // commit randomness - ok
         vm.prevrandao(fixture.randomness);
-        vm.prank(signer);
-        raffle.commitRandomness(questID);
+        raffle.commitRandomness(questID, _commitSig(questID));
 
         // commit randomness - fail
-        vm.prank(signer);
         vm.expectRevert(abi.encodeWithSelector(IRaffle.QuestNotActive.selector));
-        raffle.commitRandomness(questID);
+        raffle.commitRandomness(questID, _commitSig(questID));
     }
 
     function test_reveal_failure_already_revealed() public {
@@ -155,8 +156,7 @@ contract RaffleTest is Test {
         _participateAll(fixture.numParticipants);
 
         vm.prevrandao(fixture.randomness);
-        vm.prank(signer);
-        raffle.commitRandomness(questID);
+        raffle.commitRandomness(questID, _commitSig(questID));
 
         // reveal
         raffle.reveal(questID, fixture.publicValues, fixture.proof);
@@ -174,8 +174,7 @@ contract RaffleTest is Test {
         _participateAll(fixture.numParticipants);
 
         vm.prevrandao(fixture.randomness);
-        vm.prank(signer);
-        raffle.commitRandomness(questID);
+        raffle.commitRandomness(questID, _commitSig(questID));
 
         // reveal
         // modify the public values to be incorrect
@@ -199,6 +198,16 @@ contract RaffleTest is Test {
                 )
             )
         );
+    }
+
+    function _hashCommitRandomness(uint64 _questID) private view returns (bytes32) {
+        return _hashTypedDataV4(keccak256(abi.encode(keccak256("CommitRandomness(uint64 questID)"), _questID)));
+    }
+
+    /// @dev Produces a signer-authorized signature for committing randomness for `_questID`.
+    function _commitSig(uint64 _questID) internal view returns (bytes memory) {
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, _hashCommitRandomness(_questID));
+        return abi.encodePacked(r, s, v);
     }
 
     // --------------- EIP712 signature tools ------------- //

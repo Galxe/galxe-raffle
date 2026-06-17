@@ -17,7 +17,6 @@ interface IRaffle {
     error InvalidQuestID();
     error InvalidRandomness();
     error InvalidSignature();
-    error Unauthorized();
     error VerifyIdAlreadyUsed(uint256 verifyId);
     error QuestNotExists();
     error QuestNotActive();
@@ -41,7 +40,7 @@ interface IRaffle {
 
     function participate(uint64 _questID, uint256 _user, uint64 _verifyID, bytes calldata _signature) external;
 
-    function commitRandomness(uint64 _questID) external;
+    function commitRandomness(uint64 _questID, bytes calldata _signature) external;
 
     function reveal(uint64 _questID, bytes calldata _publicValues, bytes calldata _proofBytes) external;
 
