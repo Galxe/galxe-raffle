@@ -2,8 +2,9 @@ use alloy_sol_types::sol;
 use alloy_sol_types::SolType;
 use prometheus::{register_histogram_vec, register_int_counter_vec, HistogramVec, IntCounterVec};
 use sp1_sdk::network::prover::NetworkProver;
-use sp1_sdk::network::FulfillmentStrategy;
+use sp1_sdk::network::{FulfillmentStrategy, NetworkMode};
 use sp1_sdk::Prover;
+use sp1_sdk::ProveRequest as SP1ProveRequest;
 use sp1_sdk::SP1ProofMode;
 use sp1_sdk::SP1ProvingKey;
 use sp1_sdk::SP1Stdin;
@@ -25,15 +26,18 @@ pub struct ProverServiceImpl {
 }
 
 impl ProverServiceImpl {
-    pub fn new(
+    pub async fn new(
         private_key: &str,
         rpc_url: &str,
         elf_path: &str,
         timeout_secs: u64,
     ) -> std::io::Result<Self> {
-        let prover = NetworkProver::new(private_key, rpc_url);
+        let prover = NetworkProver::new(private_key, rpc_url, NetworkMode::Mainnet).await;
         let elf = std::fs::read(elf_path)?;
-        let (pk, _vk) = prover.setup(elf.as_slice());
+        let pk = prover
+            .setup(elf.into())
+            .await
+            .map_err(|e| std::io::Error::other(e.to_string()))?;
         Ok(Self {
             pk,
             prover,
@@ -100,11 +104,12 @@ impl ProverService for ProverServiceImpl {
 
             let proof_id = self
                 .prover
-                .prove(&self.pk, &stdin)
+                .prove(&self.pk, stdin)
                 .strategy(FulfillmentStrategy::Auction)
                 .skip_simulation(false)
                 .mode(proof_mode)
                 .request()
+                .await
                 .map_err(|e| Status::internal(e.to_string()))?;
 
             log::info!(
