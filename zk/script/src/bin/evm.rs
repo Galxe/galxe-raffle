@@ -15,13 +15,15 @@ use alloy_sol_types::SolType;
 
 use clap::{Parser, ValueEnum};
 use serde::{Deserialize, Serialize};
+use sp1_sdk::blocking::{ProveRequest, Prover, ProverClient};
 use sp1_sdk::{
-    include_elf, HashableKey, ProverClient, SP1ProofWithPublicValues, SP1Stdin, SP1VerifyingKey,
+    include_elf, Elf, HashableKey, ProvingKey, SP1ProofWithPublicValues, SP1Stdin,
+    SP1VerifyingKey,
 };
 use std::path::PathBuf;
 
 /// The ELF (executable and linkable format) file for the Succinct RISC-V zkVM.
-pub const ELF: &[u8] = include_elf!("galxe-raffle");
+pub const ELF: Elf = include_elf!("galxe-raffle");
 
 /// The arguments for the EVM command.
 #[derive(Parser, Debug)]
@@ -99,7 +101,8 @@ fn main() {
     let client = ProverClient::from_env();
 
     // Setup the program.
-    let (pk, vk) = client.setup(ELF);
+    let pk = client.setup(ELF).expect("failed to setup prover");
+    let vk = pk.verifying_key();
 
     // Setup the inputs.
     let mut stdin = SP1Stdin::new();
@@ -114,12 +117,12 @@ fn main() {
 
     // Generate the proof based on the selected proof system.
     let proof = match args.system {
-        ProofSystem::Plonk => client.prove(&pk, &stdin).plonk().run(),
-        ProofSystem::Groth16 => client.prove(&pk, &stdin).groth16().run(),
+        ProofSystem::Plonk => client.prove(&pk, stdin).plonk().run(),
+        ProofSystem::Groth16 => client.prove(&pk, stdin).groth16().run(),
     }
     .expect("failed to generate proof");
 
-    create_proof_fixture(&proof, &vk, args.system);
+    create_proof_fixture(&proof, vk, args.system);
 }
 
 /// Create a fixture for the given proof.

@@ -27,7 +27,7 @@ struct Args {
     /// Path to the ELF file
     #[arg(
         long,
-        default_value = "elf/riscv32im-succinct-zkvm-elf",
+        default_value = "elf/galxe-raffle",
         env = "ELF_PATH"
     )]
     elf_path: String,
@@ -64,7 +64,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         &args.rpc_url,
         &args.elf_path,
         args.timeout_secs,
-    )?;
+    )
+    .await?;
 
     // Set up health checks
     let (mut health_reporter, health_service) = health_reporter();

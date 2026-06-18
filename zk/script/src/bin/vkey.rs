@@ -1,10 +1,11 @@
-use sp1_sdk::{include_elf, HashableKey, Prover, ProverClient};
+use sp1_sdk::blocking::{Prover, ProverClient};
+use sp1_sdk::{include_elf, Elf, HashableKey, ProvingKey};
 
 /// The ELF (executable and linkable format) file for the Succinct RISC-V zkVM.
-pub const FIBONACCI_ELF: &[u8] = include_elf!("galxe-raffle");
+pub const FIBONACCI_ELF: Elf = include_elf!("galxe-raffle");
 
 fn main() {
     let prover = ProverClient::builder().cpu().build();
-    let (_, vk) = prover.setup(FIBONACCI_ELF);
-    println!("{}", vk.bytes32());
+    let pk = prover.setup(FIBONACCI_ELF).expect("failed to setup prover");
+    println!("{}", pk.verifying_key().bytes32());
 }

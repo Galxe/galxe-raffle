@@ -1,9 +1,10 @@
 use alloy_sol_types::{sol, SolType};
 use clap::Parser;
-use sp1_sdk::{include_elf, ProverClient, SP1ProofWithPublicValues, SP1Stdin};
+use sp1_sdk::blocking::{ProveRequest, Prover, ProverClient};
+use sp1_sdk::{include_elf, Elf, ProvingKey, SP1ProofWithPublicValues, SP1Stdin};
 
 /// The ELF (executable and linkable format) file for the Succinct RISC-V zkVM.
-pub const ELF: &[u8] = include_elf!("galxe-raffle");
+pub const ELF: Elf = include_elf!("galxe-raffle");
 
 /// The arguments for the command.
 #[derive(Parser, Debug)]
@@ -76,7 +77,7 @@ fn main() {
 
     if args.execute {
         // Execute the program
-        let (output, report) = client.execute(ELF, &stdin).run().unwrap();
+        let (output, report) = client.execute(ELF, stdin).run().unwrap();
         println!("Program executed successfully.");
 
         // Read the output.
@@ -103,11 +104,12 @@ fn main() {
         println!("Number of cycles: {}", report.total_instruction_count());
     } else if args.prove {
         // Setup the program for proving.
-        let (pk, vk) = client.setup(ELF);
+        let pk = client.setup(ELF).unwrap();
+        let vk = pk.verifying_key();
 
-        let proof: SP1ProofWithPublicValues = client.prove(&pk, &stdin).run().unwrap();
+        let proof: SP1ProofWithPublicValues = client.prove(&pk, stdin).run().unwrap();
 
-        client.verify(&proof, &vk).expect("verification failed");
+        client.verify(&proof, vk, None).expect("verification failed");
 
         // Test a round trip of proof serialization and deserialization.
         proof
@@ -118,7 +120,7 @@ fn main() {
 
         // Verify the deserialized proof.
         client
-            .verify(&deserialized_proof, &vk)
+            .verify(&deserialized_proof, vk, None)
             .expect("verification failed");
 
         println!("Successfully generated and verified proof for the raffle!");
