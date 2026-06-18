@@ -82,10 +82,7 @@ contract RaffleTest is Test {
             abi.encodeWithSelector(IDrandOracle.getRandomnessFromTimestamp.selector),
             abi.encode(
                 IDrandOracle.Random({
-                    round: 1,
-                    timestamp: questRevealTimestamp,
-                    randomness: fixture.randomness,
-                    signature: "0x1234"
+                    round: 1, timestamp: questRevealTimestamp, randomness: fixture.randomness, signature: "0x1234"
                 })
             )
         );
@@ -138,10 +135,7 @@ contract RaffleTest is Test {
             abi.encodeWithSelector(IDrandOracle.getRandomnessFromTimestamp.selector),
             abi.encode(
                 IDrandOracle.Random({
-                    round: 1,
-                    timestamp: questRevealTimestamp,
-                    randomness: fixture.randomness,
-                    signature: "0x1234"
+                    round: 1, timestamp: questRevealTimestamp, randomness: fixture.randomness, signature: "0x1234"
                 })
             )
         );
@@ -179,10 +173,7 @@ contract RaffleTest is Test {
             abi.encodeWithSelector(IDrandOracle.getRandomnessFromTimestamp.selector),
             abi.encode(
                 IDrandOracle.Random({
-                    round: 1,
-                    timestamp: questRevealTimestamp,
-                    randomness: fixture.randomness,
-                    signature: "0x1234"
+                    round: 1, timestamp: questRevealTimestamp, randomness: fixture.randomness, signature: "0x1234"
                 })
             )
         );
@@ -223,10 +214,7 @@ contract RaffleTest is Test {
             abi.encodeWithSelector(IDrandOracle.getRandomnessFromTimestamp.selector),
             abi.encode(
                 IDrandOracle.Random({
-                    round: 1,
-                    timestamp: questRevealTimestamp,
-                    randomness: fixture.randomness,
-                    signature: "0x1234"
+                    round: 1, timestamp: questRevealTimestamp, randomness: fixture.randomness, signature: "0x1234"
                 })
             )
         );
