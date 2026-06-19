@@ -24,7 +24,7 @@ import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {BitMaps} from "@openzeppelin/contracts/utils/structs/BitMaps.sol";
 import {ISP1Verifier} from "@sp1-contracts/ISP1Verifier.sol";
-import {IDrandOracle, IRaffle} from "./IRaffle.sol";
+import {IRaffle} from "./IRaffle.sol";
 
 /// @title Galxe Raffle Contract
 /// @author Galxe Team
@@ -34,7 +34,7 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
     struct RaffleQuest {
         uint64 questID;
         bool active;
-        IDrandOracle.Random random;
+        IRaffle.Random random;
         mapping(uint256 => uint256) participantIds;
         uint256 participantCount;
         uint256 winnerCount;
@@ -53,9 +53,6 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
     /// @dev The address of the SP1 verifier contract.
     address public override verifier;
 
-    /// @dev The address of the DrandOracle contract.
-    address public override drandOracle;
-
     /// @notice The verification key for the SP1 RISC-V program.
     bytes32 public override vkey;
 
@@ -64,7 +61,7 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
     /// @param _signer The signer address.
     /// @param _verifier The SP1 verifier address.
     /// @param _vkey The verification key for the SP1 RISC-V program.
-    constructor(address _initialOwner, address _signer, address _verifier, bytes32 _vkey, address _drandOracle)
+    constructor(address _initialOwner, address _signer, address _verifier, bytes32 _vkey)
         Ownable(_initialOwner)
         EIP712("Galxe Raffle", "1.0.0")
     {
@@ -80,7 +77,6 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
         signer = _signer;
         verifier = _verifier;
         vkey = _vkey;
-        drandOracle = _drandOracle;
     }
 
     /// @notice Pauses the contract.
@@ -118,13 +114,6 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
     function setVkey(bytes32 _vkey) public onlyOwner {
         vkey = _vkey;
         emit IRaffle.VkeyUpdated(_vkey);
-    }
-
-    /// @notice Sets the DrandOracle address.
-    /// @param _drandOracle The new DrandOracle address.
-    function setDrandOracle(address _drandOracle) public onlyOwner {
-        drandOracle = _drandOracle;
-        emit IRaffle.DrandOracleUpdated(_drandOracle);
     }
 
     /// @notice Participates in the raffle reward quest.
@@ -174,10 +163,19 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
         emit IRaffle.Participate(participantID, _questID, _user, _verifyID);
     }
 
-    /// @notice Commits the randomness for the quest.
+    /// @notice Commits the randomness for the quest using Gravity L1 native randomness.
+    /// @dev Reads `block.prevrandao` (unbiasable on Gravity via consensus DKG + WVUF) and gates
+    ///      the call with an off-chain signature from `signer`. Anyone may relay the signed call,
+    ///      so `signer` does not need to hold gas.
+    ///
+    ///      SECURITY (accepted trade-off): the signature authorizes the quest, not a specific
+    ///      block. Because `block.prevrandao` is fixed per block, a relayer can wrap this call in
+    ///      their own contract and revert the whole transaction on a losing draw, then retry in a
+    ///      later block for a fresh value (test-and-abort). This is intentionally accepted here in
+    ///      exchange for keeping `signer` gas-free; the operator is expected to commit promptly.
     /// @param _questID The quest ID.
-    /// @param _signature The signature.
-    function commitRandomness(uint64 _questID, uint64 _timestamp, bytes calldata _signature) public {
+    /// @param _signature The signer's authorization over the quest ID.
+    function commitRandomness(uint64 _questID, bytes calldata _signature) public {
         RaffleQuest storage quest = quests[_questID];
 
         if (quest.questID == 0) {
@@ -192,21 +190,21 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
             revert IRaffle.QuestRandomnessAlreadyCommitted();
         }
 
-        bool isVerified = _verify(_hashCommitRandomness(_questID, _timestamp), _signature);
+        bool isVerified = _verify(_hashCommitRandomness(_questID), _signature);
         if (!isVerified) {
             revert IRaffle.InvalidSignature();
         }
 
-        IDrandOracle.Random memory random = IDrandOracle(drandOracle).getRandomnessFromTimestamp(_timestamp);
-
-        if (random.round == 0 || random.randomness == bytes32(0) || random.signature.length == 0) {
+        bytes32 randomness = bytes32(block.prevrandao);
+        if (randomness == bytes32(0)) {
+            // Randomness is disabled or not yet available on the chain.
             revert IRaffle.InvalidRandomness();
         }
 
-        quest.random = random;
+        quest.random = IRaffle.Random({randomness: randomness, blockNumber: uint64(block.number)});
         quest.active = false;
 
-        emit IRaffle.CommitRandomness(_questID, random.round, random.randomness);
+        emit IRaffle.CommitRandomness(_questID, uint64(block.number), randomness);
     }
 
     /// @notice Verifies the proof and reveals the raffle result.
@@ -248,7 +246,7 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
         view
         returns (
             bool _active,
-            IDrandOracle.Random memory random,
+            IRaffle.Random memory random,
             uint256 _participantCount,
             uint256 _winnerCount,
             bytes32 _merkleRoot
@@ -276,9 +274,7 @@ contract Raffle is IRaffle, Ownable2Step, Pausable, EIP712 {
         );
     }
 
-    function _hashCommitRandomness(uint64 _questID, uint64 _timestamp) private view returns (bytes32) {
-        return _hashTypedDataV4(
-            keccak256(abi.encode(keccak256("CommitRandomness(uint64 questID,uint64 timestamp)"), _questID, _timestamp))
-        );
+    function _hashCommitRandomness(uint64 _questID) private view returns (bytes32) {
+        return _hashTypedDataV4(keccak256(abi.encode(keccak256("CommitRandomness(uint64 questID)"), _questID)));
     }
 }

@@ -13,7 +13,7 @@ pub fn main() {
     let num_participants = sp1_zkvm::io::read::<u32>();
     let num_winners: u32 = sp1_zkvm::io::read::<u32>();
 
-    // The drand network provides randomness outputs as a byte array with 32 bytes of data
+    // The randomness is a 32-byte value (Gravity L1 native randomness, block.prevrandao)
     let randomness = sp1_zkvm::io::read::<[u8; 32]>();
     let randomness_as_u64 = u64::from_le_bytes(randomness[..8].try_into().unwrap());
 

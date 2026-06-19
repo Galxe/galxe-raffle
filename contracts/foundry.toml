@@ -10,15 +10,16 @@ fs_permissions = [
 remappings = [
     "@openzeppelin/=lib/openzeppelin-contracts/",
     "@sp1-contracts/=lib/sp1-contracts/contracts/src/",
-    "@drand-oracle/=lib/drand-oracle/contracts/src/",
 ]
 
 [rpc_endpoints]
+gravity_mainnet = "${RPC_GRAVITY_MAINNET}"
 gravity = "${RPC_GRAVITY}"
 gravity_sepolia = "${RPC_GRAVITY_SEPOLIA}"
 anvil = "http://127.0.0.1:8545"
 
 [etherscan]
+gravity_mainnet = { key = "", chain = "127001", url = "${ETHERSCAN_API_URL_GRAVITY_MAINNET}", verifier = "blockscout" }
 gravity = { key = "", chain = "1625", url = "${ETHERSCAN_API_URL_GRAVITY}", verifier = "blockscout" }
 gravity_sepolia = { key = "", chain = "13505", url = "${ETHERSCAN_API_URL_GRAVITY_SEPOLIA}", verifier = "blockscout" }
 anvil = { key = "", chain = "31337", url = "http://127.0.0.1:8545" }
